@@ -23,6 +23,13 @@ while ($row = $sheets_result_2->fetch_assoc()) {
     $sheets_2[] = $row['sheet_name_2'];
 }
 
+$sheets_query_3 = "SELECT DISTINCT sheet_name_3 FROM patient_records_3";
+$sheets_result_3 = $conn->query($sheets_query_3);
+$sheets_3 = [];
+while ($row = $sheets_result_3->fetch_assoc()) {
+    $sheets_3[] = $row['sheet_name_3'];
+}
+
 $selected_sheet_1 = $_GET['sheet_1'] ?? ($sheets[0] ?? '');
 $selected_sheet_2 = $_GET['sheet_2'] ?? ($sheets[0] ?? '');
 $selected_sheet_3 = $_GET['sheet_3'] ?? ($sheets[0] ?? '');
@@ -102,6 +109,48 @@ while ($row = $result->fetch_assoc()) {
             $summary[$admit_day]['total_admissions'] += 1;
         }
     }
+
+    // Fetch data for Column 8 (Total Discharges) from patient_records_3
+$discharge_query = "SELECT date_discharge, category FROM patient_records_3 WHERE sheet_name_3 = '$selected_sheet_3'";
+$discharge_result = $conn->query($discharge_query);
+
+while ($row = $discharge_result->fetch_assoc()) {
+    $discharge_day = (int)date('d', strtotime($row['date_discharge'])) - 1; // Count on the day before discharge
+    $category = strtolower($row['category']);
+
+    // Ensure the day is within range (1-31)
+    if ($discharge_day >= 1 && $discharge_day <= 31) {
+        if (strpos($category, 'non phic') !== false) {
+            $summary[$discharge_day]['total_discharges_non_nhip'] += 1; // Non-NHIP
+        } else {
+            $summary[$discharge_day]['total_discharges_nhip'] += 1; // NHIP
+        }
+    }
+}
+
+// Fetch data for Column 6 (Non-NHIP from Discharge Billing)
+$non_nhip_query = "SELECT date_admitted, date_discharge, category FROM patient_records_3 WHERE sheet_name_3 = '$selected_sheet_3'";
+$non_nhip_result = $conn->query($non_nhip_query);
+
+while ($row = $non_nhip_result->fetch_assoc()) {
+    $admit = new DateTime($row['date_admitted']);
+    $discharge = new DateTime($row['date_discharge']);
+    $category = strtolower($row['category']);
+
+    // Only process Non-NHIP patients
+    if (strpos($category, 'non phic') !== false) {
+        $startDay = max(1, (int) $admit->format('d'));
+        $endDay = min(31, (int) $discharge->format('d') - 1);
+
+        if ($startDay <= 31 && $endDay >= 1) {
+            for ($day = $startDay; $day <= $endDay; $day++) {
+                $summary[$day]['non_nhip'] += 1;
+            }
+        }
+    }
+}
+
+
 ?>
 
 <!DOCTYPE html>
@@ -135,7 +184,8 @@ while ($row = $result->fetch_assoc()) {
         </select>
         <label>Select Sheet for Column 8:</label>
         <select name="sheet_3" onchange="this.form.submit()" class="form-select mb-2">
-            <?php foreach ($sheets as $sheet) { ?>
+        <option value="" disabled selected>Select Discharge Sheet</option>
+            <?php foreach ($sheets_3 as $sheet) { ?>
                 <option value="<?php echo $sheet; ?>" <?php echo $sheet === $selected_sheet_3 ? 'selected' : ''; ?>>
                     <?php echo $sheet; ?>
                 </option>
@@ -177,28 +227,64 @@ while ($row = $result->fetch_assoc()) {
                 </tr>
             </thead>
             <tbody>
-                <?php foreach ($summary as $day => $row) { ?>
-                    <tr>
-                        <td class="text-center"> <?php echo $day; ?> </td>
-                        <td class="text-center"> <?php echo $row['govt']; ?> </td>
-                        <td class="text-center"> <?php echo $row['private']; ?> </td>
-                        <td class="text-center"> <?php echo $row['self_employed']; ?> </td>
-                        <td class="text-center"> <?php echo $row['ofw']; ?> </td>
-                        <td class="text-center"> <?php echo $row['owwa']; ?> </td>
-                        <td class="text-center"> <?php echo $row['sc']; ?> </td>
-                        <td class="text-center"> <?php echo $row['pwd']; ?> </td>
-                        <td class="text-center"> <?php echo $row['indigent']; ?> </td>
-                        <td class="text-center"> <?php echo $row['pensioners']; ?> </td>
-                        <td class="text-center"> <?php echo $row['nhip']; ?> </td>
-                        <td class="text-center"> <?php echo $row['non_nhip']; ?> </td>
-                        <td class="text-center"> <?php echo $row['total_admissions']; ?> </td>
-                        <td class="text-center"> <?php echo $row['total_discharges_nhip']; ?> </td>
-                        <td class="text-center"> <?php echo $row['total_discharges_non_nhip']; ?> </td>
-                        <td class="text-center"> <?php echo $row['lohs_nhip']; ?> </td>
-                        <td class="text-center"> <?php echo $row['lohs_non_nhip']; ?> </td>
-                    </tr>
-                <?php } ?>
-            </tbody>
+    <?php 
+    // Initialize totals array
+    $totals = [
+        'govt' => 0, 'private' => 0, 'self_employed' => 0, 'ofw' => 0,
+        'owwa' => 0, 'sc' => 0, 'pwd' => 0, 'indigent' => 0, 'pensioners' => 0,
+        'nhip' => 0, 'non_nhip' => 0, 'total_admissions' => 0, 'total_discharges_nhip' => 0,
+        'total_discharges_non_nhip' => 0, 'lohs_nhip' => 0
+    ];
+
+    foreach ($summary as $day => $row) { 
+        // Accumulate totals for each column
+        foreach ($totals as $key => &$total) {
+            $total += $row[$key];
+        }
+    ?>
+        <tr>
+            <td class="text-center"> <?php echo $day; ?> </td>
+            <td class="text-center"> <?php echo $row['govt']; ?> </td>
+            <td class="text-center"> <?php echo $row['private']; ?> </td>
+            <td class="text-center"> <?php echo $row['self_employed']; ?> </td>
+            <td class="text-center"> <?php echo $row['ofw']; ?> </td>
+            <td class="text-center"> <?php echo $row['owwa']; ?> </td>
+            <td class="text-center"> <?php echo $row['sc']; ?> </td>
+            <td class="text-center"> <?php echo $row['pwd']; ?> </td>
+            <td class="text-center"> <?php echo $row['indigent']; ?> </td>
+            <td class="text-center"> <?php echo $row['pensioners']; ?> </td>
+            <td class="text-center"> <?php echo $row['nhip']; ?> </td>
+            <td class="text-center"> <?php echo $row['non_nhip']; ?> </td>
+            <td class="text-center"> <?php echo $row['total_admissions']; ?> </td>
+            <td class="text-center"> <?php echo $row['total_discharges_nhip']; ?> </td>
+            <td class="text-center"> <?php echo $row['total_discharges_non_nhip']; ?> </td>
+            <td class="text-center"> <?php echo $row['lohs_nhip']; ?> </td>
+            <td class="text-center"> <?php echo $row['non_nhip']; ?> </td>
+        </tr>
+    <?php } ?>
+
+    <!-- Totals Row -->
+    <tr class="table-dark text-center fw-bold">
+        <td>Total</td>
+        <td><?php echo $totals['govt']; ?></td>
+        <td><?php echo $totals['private']; ?></td>
+        <td><?php echo $totals['self_employed']; ?></td>
+        <td><?php echo $totals['ofw']; ?></td>
+        <td><?php echo $totals['owwa']; ?></td>
+        <td><?php echo $totals['sc']; ?></td>
+        <td><?php echo $totals['pwd']; ?></td>
+        <td><?php echo $totals['indigent']; ?></td>
+        <td><?php echo $totals['pensioners']; ?></td>
+        <td><?php echo $totals['nhip']; ?></td>
+        <td><?php echo $totals['non_nhip']; ?></td>
+        <td><?php echo $totals['total_admissions']; ?></td>
+        <td><?php echo $totals['total_discharges_nhip']; ?></td>
+        <td><?php echo $totals['total_discharges_non_nhip']; ?></td>
+        <td><?php echo $totals['lohs_nhip']; ?></td>
+        <td><?php echo $totals['non_nhip']; ?></td>
+    </tr>
+</tbody>
+
         </table>
     </div>
 </body>

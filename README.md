@@ -1,11 +1,9 @@
-﻿# mmhr_census
-
 <?php
 require 'vendor/autoload.php';
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Shared\Date;
 
-ini_set('max_execution_time', 300); 
+ini_set('max_execution_time', 300);
 
 $host = "localhost";
 $user = "root";
@@ -33,7 +31,7 @@ if (isset($_FILES['excelFile'])) {
         $sheet = $spreadsheet->getSheetByName($sheetName);
         $highestRow = $sheet->getHighestRow(); 
         
-        $batchData = []; 
+        $batchData = [];
 
         $normalizedSheetName = strtoupper(trim($sheetName));
 
@@ -49,77 +47,73 @@ if (isset($_FILES['excelFile'])) {
             $tableName = "patient_records_2";
         } elseif (stripos($sheetName, 'discharge(billing)') !== false) {
             $startRow = 4;
-            $colPatient_Name = "A";
-            $colAdmission_Date = "K";
-            $colDischarge_Date = "M";
-            $colMember_Category = "T";
+            $colPatientName = "A";
+            $colAdmissionDate = "C";
+            $colDischargeDate = "E";
+            $colCategory = "G";
             $tableName = "patient_records_3";
         } else {
-            continue; 
+            continue;
         }
 
-        for ($rowIndex = $startRow; $rowIndex <= $highestRow; $rowIndex++) { 
+        for ($rowIndex = $startRow; $rowIndex <= $highestRow; $rowIndex++) {
+            $patientName = trim($sheet->getCell("{$colPatientName}$rowIndex")->getValue());
             $admissionDate = $sheet->getCell("{$colAdmissionDate}$rowIndex")->getValue();
-            $patientName = $sheet->getCell("{$colPatientName}$rowIndex")->getValue();
-            $admission_Date = isset($colAdmission_Date) ? $sheet->getCell("{$colAdmission_Date}$rowIndex")->getValue() : null;
-            $discharge_Date = isset($colDischarge_Date) ? $sheet->getCell("{$colDischarge_Date}$rowIndex")->getValue() : null;
-            $member_Category = isset($colMember_Category) ? trim($sheet->getCell("{$colMember_Category}$rowIndex")->getValue()) : null;
+            $dischargeDate = isset($colDischargeDate) ? $sheet->getCell("{$colDischargeDate}$rowIndex")->getValue() : null;
+            $category = isset($colCategory) ? trim($sheet->getCell("{$colCategory}$rowIndex")->getValue()) : null;
 
+            // Convert Excel dates to Y-m-d format
             if (is_numeric($admissionDate)) {
                 $admissionDate = Date::excelToDateTimeObject($admissionDate)->format('Y-m-d');
             }
 
-            if (is_numeric($admission_Date)) {
-                $admission_Date = Date::excelToDateTimeObject($admission_Date)->format('Y-m-d');
+            if ($dischargeDate !== null && is_numeric($dischargeDate)) {
+                $dischargeDate = Date::excelToDateTimeObject($dischargeDate)->format('Y-m-d');
             }
 
-            if ($discharge_Date != null && is_numeric($discharge_Date)) {
-                $discharge_Date = Date::excelToDateTimeObject($discharge_Date)->format('Y-m-d');
-            }
+            // Debugging output
+            echo "Row: $rowIndex | Sheet: $sheetName | Patient: $patientName | Admission: $admissionDate | Discharge: $dischargeDate | Category: $category <br>";
 
+            // Skip empty rows
             if (empty($patientName) || empty($admissionDate)) {
                 continue;
             }
 
             if ($tableName === "patient_records_3") {
-                $patient_Name = $sheet->getCell("{$colPatient_Name}$rowIndex")->getValue();
-                $batchData[] = "($fileId, '$sheetName', '$admission_Date', " . 
-                    (!empty($discharge_Date) ? "'$discharge_Date'" : "NULL") . ", " .
-                    (!empty($member_Category) ? "'$member_Category'" : "NULL") . ", '$patient_Name')";
-
-            } elseif ($tableName === "patient_records_2") {
+                $batchData[] = "($fileId, '$sheetName', '$admissionDate', " . 
+                    (!empty($dischargeDate) ? "'$dischargeDate'" : "NULL") . ", " . 
+                    (!empty($category) ? "'$category'" : "NULL") . ", '$patientName')";
+            } else if ($tableName === "patient_records_2") {
                 $batchData[] = "($fileId, '$sheetName', '$admissionDate', '$patientName')";
-
             } else {
                 $dischargeDate = $sheet->getCell("D$rowIndex")->getValue();
                 $memberCategory = $sheet->getCell("M$rowIndex")->getValue();
-                
+
                 if (is_numeric($dischargeDate)) {
                     $dischargeDate = Date::excelToDateTimeObject($dischargeDate)->format('Y-m-d');
                 }
-                
+
                 $batchData[] = "($fileId, '$sheetName', '$admissionDate', '$dischargeDate', '$memberCategory', '$patientName')";
             }
 
+            // Batch insert every 500 rows
             if (count($batchData) >= 500) {
                 if ($tableName === "patient_records_3") {
                     $query = "INSERT INTO patient_records_3 (file_id, sheet_name_3, date_admitted, date_discharge, category, patient_name_3) VALUES " . implode(',', $batchData);
-                
-                } elseif ($tableName === "patient_records_2") {
+                } else if ($tableName === "patient_records_2") {
                     $query = "INSERT INTO patient_records_2 (file_id, sheet_name_2, admission_date_2, patient_name_2) VALUES " . implode(',', $batchData);
-                
                 } else {
                     $query = "INSERT INTO patient_records (file_id, sheet_name, admission_date, discharge_date, member_category, patient_name) VALUES " . implode(',', $batchData);
                 }
                 $conn->query($query);
-                $batchData = []; 
+                $batchData = [];
             }
         }
 
         if (!empty($batchData)) {
             if ($tableName === "patient_records_3") {
                 $query = "INSERT INTO patient_records_3 (file_id, sheet_name_3, date_admitted, date_discharge, category, patient_name_3) VALUES " . implode(',', $batchData);
-            } elseif ($tableName === "patient_records_2") {
+            } else if ($tableName === "patient_records_2") {
                 $query = "INSERT INTO patient_records_2 (file_id, sheet_name_2, admission_date_2, patient_name_2) VALUES " . implode(',', $batchData);
             } else {
                 $query = "INSERT INTO patient_records (file_id, sheet_name, admission_date, discharge_date, member_category, patient_name) VALUES " . implode(',', $batchData);
@@ -135,6 +129,3 @@ if (isset($_FILES['excelFile'])) {
 
 $conn->close();
 ?>
-
-
-

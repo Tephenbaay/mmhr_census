@@ -151,17 +151,100 @@ while ($row = $result->fetch_assoc()) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MMHR Census</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .table-container {
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            gap: 20px;
+        }
+        .table-responsive {
+            width: 100%;
+        }
+        .header-text {
+            text-align: center;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+        .form-label {
+            font-weight: bold;
+        }
+    </style>
 </head>
 <body class="container mt-4">
+<div class="header-text">
+        <p>REPUBLIC OF THE PHILIPPINES</p>
+        <p>PHILIPPINE HEALTH INSURANCE CORPORATION</p>
+        <p>MANDATORY MONTHLY HOSPITAL REPORT</p>
+        <p>12/F City State Centre, 709 Shaw Blvd., Brgy. Oranbo, Pasig City</p>
+        <p>For the Month of JANUARY 2025</p>
+    </div>
+    <form>
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <label class="form-label">Accreditation No.:</label>
+                <input type="text" class="form-control" name="accreditation_no">
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Region:</label>
+                <input type="text" class="form-control" name="region">
+            </div>
+        </div>
+        
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <label class="form-label">Name of Hospital:</label>
+                <input type="text" class="form-control" name="hospital_name">
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Category:</label>
+                <input type="text" class="form-control" name="category">
+            </div>
+        </div>
+        
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <label class="form-label">Address No./Street:</label>
+                <input type="text" class="form-control" name="address">
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">PHIC Accredited Beds:</label>
+                <input type="text" class="form-control" name="phic_beds">
+            </div>
+        </div>
+        
+        <div class="row mb-3">
+            <div class="col-md-4">
+                <label class="form-label">Municipality:</label>
+                <input type="text" class="form-control" name="municipality">
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">DOH Authorized Beds:</label>
+                <input type="text" class="form-control" name="doh_beds">
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Province:</label>
+                <input type="text" class="form-control" name="province">
+            </div>
+        </div>
+        
+        <div class="row mb-3">
+            <div class="col-md-4">
+                <label class="form-label">Zip Code:</label>
+                <input type="text" class="form-control" name="zip_code">
+            </div>
+        </div>
+    </form>
     <h2 class="text-center">MMHR Census</h2>
-    <div class="row">
+    <div class="table-container">
         <div class="col-md-6">
-            <h4 class="text-center"></h4>
+        <p>A. DAILY CENSUS OF NHIP PATIENTS</p>
+        <p class="text-center"><b>(EVERY 12:00MN.)</b></p>
             <table class="table table-bordered text-center">
                 <thead class="table-dark text-center">
                     <tr>
-                        <th rowspan="2">Date</th>
-                        <th colspan="3">Census</th>
+                        <th rowspan="2">DATE</th>
+                        <th colspan="3">CENSUS</th> 
                     </tr>
                     <tr>
                         <th>NHIP</th>
@@ -177,7 +260,7 @@ while ($row = $result->fetch_assoc()) {
                         $non_nhip = $summary[$i]['non_nhip'] ?? 0;
                         $total = $nhip + $non_nhip;
 
-                        $totals['nhip'] += $nhip;
+                        $totals['nhip']  += $nhip;
                         $totals['non_nhip'] += $non_nhip;
                         $totals['total'] += $total;
                     ?>
@@ -189,7 +272,7 @@ while ($row = $result->fetch_assoc()) {
                         </tr>
                     <?php } ?>
                     <tr class="fw-bold text-center">
-                        <td colspan="4">NOTHING FOLLOWS</td>
+                        <td colspan="4">*** NOTHING FOLLOWS ***</td>
                     </tr>
                     <tr class="table-dark fw-bold">
                         <td>Total</td>
@@ -202,12 +285,13 @@ while ($row = $result->fetch_assoc()) {
         </div>
 
         <div class="col-md-6">
-            <h4 class="text-center"></h4>
+            <p>CENSUS FOR THE DAY=CENSUS OF THE PREVIOUS DAY PLUS THE ADMISSION OF THE DAY</p>
+            <p class="text-center"><b>minus DISCHARGES of the day.</b></p>
             <table class="table table-bordered text-center">
                 <thead class="table-dark text-center">
                     <tr>
-                        <th rowspan="2">Date</th>
-                        <th colspan="3">Discharges</th>
+                        <th rowspan="2">DATE</th>
+                        <th colspan="3">DISCHARGES</th>
                     </tr>
                     <tr>
                         <th>NHIP</th>
@@ -235,7 +319,7 @@ while ($row = $result->fetch_assoc()) {
                         </tr>
                     <?php } ?>
                     <tr class="fw-bold text-center">
-                        <td colspan="4">NOTHING FOLLOWS</td>
+                        <td colspan="4">*** NOTHING FOLLOWS ***</td>
                     </tr>
                     <tr class="table-dark fw-bold">
                         <td>Total</td>

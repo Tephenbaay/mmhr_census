@@ -151,9 +151,27 @@ while ($row = $result->fetch_assoc()) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MMHR Census</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="sige\summary.css">
 </head>
 <body class="container mt-4">
+    
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="#">BMCI</a>
+    </div>
+</nav>
+
+<aside>
+    <div class="sidebar">
+        <h2>Upload Excel File</h2>
+        <form action="upload.php" method="POST" enctype="multipart/form-data">
+            <input type="file" name="excelFile" accept=".xlsx, .xls">
+            <button type="submit">Upload</button>
+        </form>
+    </div>
+</aside>
+
+<div class="table-responsive">
     <h2 class="text-center mb-4">MMHR Census Summary Table</h2>
     <form action="mmhr_census.php" method="GET">
         <input type="hidden" name="sheet_1" value="<?php echo $selected_sheet_1; ?>">
@@ -283,5 +301,6 @@ while ($row = $result->fetch_assoc()) {
             </tbody>
         </table>
     </div>
+</div>
 </body>
 </html>

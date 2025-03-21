@@ -164,7 +164,7 @@ while ($row = $result->fetch_assoc()) {
     
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
     <div class="container-fluid">
-        <a class="navbar-brand" href="#">BMCI</a>
+        <a class="navbar-brand" href="index.php">BMCI</a>
     </div>
 </nav>
 
@@ -316,48 +316,5 @@ while ($row = $result->fetch_assoc()) {
         </table>
     </div>
 </div>
-
-<script>
-function printTable() {
-    var printContents = document.querySelector('.table-responsive1').innerHTML;
-    var originalContents = document.body.innerHTML;
-
-    document.body.innerHTML = `
-        <html>
-            <head>
-                <title>Print Table</title>
-                <style>
-                    @media print {
-                        body {
-                            font-family: Arial, sans-serif;
-                        }
-                        table {
-                            width: 100%;
-                            border-collapse: collapse;
-                        }
-                        th, td {
-                            border: 1px solid black;
-                            padding: 8px;
-                            text-align: center;
-                        }
-                    }
-                </style>
-            </head>
-            <body>
-                ${printContents}
-                <script>
-                    window.onload = function() {
-                        window.print();
-                        window.onafterprint = function() {
-                            document.body.innerHTML = originalContents;
-                        };
-                    };
-                </script>
-            </body>
-        </html>
-    `;
-}
-</script>
-
 </body>
 </html>

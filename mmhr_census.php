@@ -159,7 +159,7 @@ while ($row = $result->fetch_assoc()) {
 
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
     <div class="container-fluid">
-        <a class="navbar-brand" href="#">BMCI</a>
+        <a class="navbar-brand" href="index.php">BMCI</a>
     </div>
 </nav>
 

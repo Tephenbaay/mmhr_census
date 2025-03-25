@@ -164,7 +164,10 @@ while ($row = $result->fetch_assoc()) {
     
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
     <div class="container-fluid">
-        <a class="navbar-brand" href="index.php">BMCI</a>
+        <div class="navb">
+            <img src="sige/download-removebg-preview.png" alt="icon">
+            <a class="navbar-brand" href="index.php">BicutanMed</a>
+        </div>
     </div>
 </nav>
 
@@ -176,6 +179,7 @@ while ($row = $result->fetch_assoc()) {
             <button type="submit">Upload</button>
 
             <button onclick="printTable()" class="btn btn-success">Print Table</button>
+
         </form>
     </div>
 </aside>
@@ -193,6 +197,7 @@ while ($row = $result->fetch_assoc()) {
         <div class="sige">
         <label class="col2-5"></label>
         <select name="sheet_1" onchange="this.form.submit()" class="form-select mb-2">
+        <option value="" disabled selected>Select Month</option>
             <?php foreach ($sheets as $sheet) { ?>
                 <option value="<?php echo $sheet; ?>" <?php echo $sheet === $selected_sheet_1 ? 'selected' : ''; ?>>
                     <?php echo $sheet; ?>
@@ -220,10 +225,10 @@ while ($row = $result->fetch_assoc()) {
         </div>
     </form>
 
-    <div class="table-responsive1">
+    <div class="table-responsive1" id="printable">
         <table class="table table-bordered">
             <thead class="table-dark text-center">
-            <tr>
+            <tr class="th1">
                     <th colspan="1" style="background-color: black; color: white;">1</th>
                     <th colspan="2" style="background-color: black; color: white;">2</th>
                     <th colspan="5" style="background-color: black; color: white;">3</th>
@@ -249,7 +254,7 @@ while ($row = $result->fetch_assoc()) {
                     <th style="background-color: green;">Gov’t</th><th style="background-color: green;">Private</th>
                     <th style="background-color: green;">Self-Employed</th><th style="background-color: green;">OFW</th>
                     <th style="background-color: green;">OWWA</th><th style="background-color: green;">SC</th><th style="background-color: green;">PWD</th>
-                    <th style="background-color:rgb(0, 0, 0); color: white;">NHIP</th><th style="background-color: #c7f9ff;">NON-NHIP</th>
+                    <th style="background-color:rgb(0, 0, 0); color: white;" id="th1">NHIP</th><th style="background-color: #c7f9ff;">NON-NHIP</th>
                     <th style="background-color: orange;">NHIP</th><th style="background-color: orange;">NON-NHIP</th>
                     <th style="background-color: blue;">NHIP</th><th style="background-color: blue;">NON-NHIP</th>
                 </tr>
@@ -270,7 +275,7 @@ while ($row = $result->fetch_assoc()) {
                         $total += $row[$key];
                     }
                 ?>
-                    <tr>
+                    <tr class="tdata">
                         <td class="text-center"> <?php echo $day; ?> </td> 
                         <td class="text-center"> <?php echo $row['govt']; ?> </td>
                         <td class="text-center"> <?php echo $row['private']; ?> </td>
@@ -316,5 +321,30 @@ while ($row = $result->fetch_assoc()) {
         </table>
     </div>
 </div>
+
+<script>
+
+function printTable() {
+    var printWindow = window.open('', '', 'height=500, width=800');
+    printWindow.document.write('<html><head><title>Print Table</title>');
+    printWindow.document.write('<style>table { width: 100%; border-collapse: collapse; } th, td { border: 1px solid black; padding: 8px; }</style>');
+    printWindow.document.write('</head><body>');
+    printWindow.document.write(document.getElementById('printTable').outerHTML);
+    printWindow.document.write('</body></html>');
+    printWindow.document.close();
+    printWindow.print();
+}
+
+function printTable() {
+    var printContents = document.getElementById("printable").innerHTML;
+    var originalContents = document.body.innerHTML;
+
+    document.body.innerHTML = printContents;
+    window.print();
+    document.body.innerHTML = originalContents;
+}
+
+</script>
+
 </body>
 </html>

@@ -9,10 +9,24 @@ $host = "localhost";
 $user = "root";
 $pass = "";
 $dbname = "mmhr_census";
+$port = 3308;
 
-$conn = new mysqli($host, $user, $pass, $dbname);
+$conn = new mysqli($host, $user, $pass, $dbname, $port);
 if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
+}
+
+if (!isset($_FILES['excelFile']) || $_FILES['excelFile']['error'] != 0) {
+    die("Error: No file uploaded or upload failed.");
+}
+
+if (isset($_FILES['excelFile'])) {
+    $fileName = $_FILES['excelFile']['name'];
+    $fileTmp = $_FILES['excelFile']['tmp_name'];
+
+    if (!file_exists($fileTmp)) {
+        die("Error: Uploaded file does not exist.");
+    }
 }
 
 if (isset($_FILES['excelFile'])) {
@@ -114,6 +128,14 @@ if (isset($_FILES['excelFile'])) {
             }
             $conn->query($query);
         }
+    }
+
+        session_start();
+    $_SESSION['file_uploaded'] = true;
+
+        session_start();
+    if (!isset($_SESSION['file_uploaded']) || empty($sheets)) {
+        echo "<script>alert('No file uploaded. Please upload a file first.');</script>";
     }
 
     echo "File uploaded and processed successfully!";

@@ -6,7 +6,7 @@ body, h1, h2, form, select, input, button {
 body {
     display: flex;
     font-family: Arial, sans-serif;
-    background-color: cornsilk;
+    background-color: rgb(255, 255, 255);
 }
 
 .sidebar {
@@ -58,6 +58,17 @@ body {
     top: 0;
     left: 0;
     z-index: 1000;
+}
+
+.navb{
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+}
+
+img{
+    width: 3%;
+    height: auto;
 }
 
 .navbar h1 {
@@ -118,6 +129,7 @@ form button {
 .navbar-brand{
     color: white;
     font-size: 1.5rem;
+    text-decoration: none;
 }
 
 .govt{
@@ -150,7 +162,7 @@ tbody{
 tfoot{
     position: sticky;
     bottom: 0;
-    background-color: black; /* Ensure visibility */
+    background-color: black;  /* Ensure visibility */
     color: white;
     z-index: 10;
     text-align: center;
@@ -162,4 +174,36 @@ tfoot{
     margin: auto;
     width: 50%;
     
+}
+
+@media print {
+    body * {
+        visibility: hidden; /* Hide everything */
+        background-color: white;
+        margin-top: 10%;
+    }
+    
+    table, table * {
+        visibility: visible; /* Show the table */
+        width: 100% !important;
+    }
+    
+    table {
+        border: none;
+        position: absolute;
+        page-break-inside: auto;
+        overflow: visible;
+        width: 100%;
+    }
+
+    th, td {
+        border: 2px solid black;
+        padding: 8px;
+        text-align: center;
+    }
+
+    tfoot{
+        font-weight: bold;
+        position: sticky;
+    }
 }

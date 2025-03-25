@@ -178,7 +178,6 @@ tfoot{
 
 @media print {
     body * {
-        visibility: hidden; /* Hide everything */
         background-color: white;
         margin-top: 10%;
     }

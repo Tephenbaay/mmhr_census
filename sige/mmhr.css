@@ -1,6 +1,6 @@
 body{
     margin-left: 270px;
-    background-color: cornsilk;
+    background-color: rgb(255, 255, 255);
 }
 
 .sidebar {
@@ -57,6 +57,17 @@ body{
     z-index: 1000;
 }
 
+img{
+    width: 20%;
+    height: auto;
+}
+
+.navb{
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+}
+
 .navbar h1 {
     font-size: 1.5rem;
 }
@@ -66,11 +77,17 @@ body{
     font-size: 1.5rem;
 }
 
+.main-content{
+    margin-left: 20%;
+}
+
 .table-container {
     display: flex;
+    margin: 0 auto; /* Centers horizontally */
     justify-content: center;
     align-items: flex-start;
     gap: 20px;
+    width: 50%;
 }
 
 .table-responsive {
@@ -130,9 +147,9 @@ P{
         background-color: white;
     }
     .main-content {
+        margin-left: 0;
         position: absolute;
         left: 0;
         top: 0;
-        width: 100%;
     }
 }

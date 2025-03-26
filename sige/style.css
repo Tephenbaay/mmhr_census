@@ -8,7 +8,12 @@ body, h1, h2, form, select, input, button {
 body {
     display: flex;
     font-family: Arial, sans-serif;
-    background-color: antiquewhite;
+    background-color: rgb(255, 255, 255);
+    align-items: center;
+    flex-direction: column;
+    align-content: flex-start;
+    flex-wrap: nowrap;
+    justify-content: center;
 }
 
 img{
@@ -16,24 +21,25 @@ img{
     height: auto;
 }
 
-/* Sidebar styling */
-.sidebar {
-    width: 250px;
-    height: 100vh;
-    background-color: #333;
-    color: white;
-    padding: 20px;
-    position: fixed;
-    margin-right: 10mm;
+.container{
+    background-color: #5ee470;
+    height: 25vh;
+    display: flex;
+    width: 450px;
+    display: grid;
+    border: 1px solid black;
+    margin-top: 30mm;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
 }
 
-.sidebar h2 {
-    color: #fff;
-    margin-bottom: 20px;
+h2{
+    text-align: center;
 }
 
-.sidebar form {
-    margin-top: 10px;
+a:hover{
+    background-color: #000000;
 }
 
 .sidebar input[type="file"],
@@ -50,7 +56,7 @@ img{
 .navbar {
     width: 100%;
     height: 60px;
-    background-color: #444;
+    background-color: #5ee470;
     color: white;
     padding: 10px 20px;
     text-align: left;
@@ -78,10 +84,12 @@ h2{
 
 /* Content area styling */
 .content {
-    margin-left: 270px; /* To make space for the sidebar */
-    padding-top: 80px; /* To account for navbar height */
-    width: calc(100% - 270px);
-    padding: 20px;
+    width: 100%;
+    padding: 50px;
+    border: 1px solid #000000;
+    background-color: #5ee470;
+    margin-top: 50px; 
+    border-radius: 10px;
 }
 
 /* Form styling */
@@ -101,4 +109,11 @@ form button {
     padding: 10px;
     font-size: 1rem;
     margin-left: 15px;
+}
+
+.main{
+    flex-direction: column;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }

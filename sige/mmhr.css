@@ -4,15 +4,17 @@ body{
 }
 
 .sidebar {
-    position: fixed; /* Keeps it fixed on the side */
-    left: 0; /* Aligns it to the left */
-    top: 0; /* Aligns it to the top */
-    width: 250px; /* Adjust width as needed */
-    height: 100vh; /* Full height */
-    background-color: #343a40; /* Dark background */
-    padding: 20px;
+    margin-top: 7mm;
+    margin-left: -15%;
+    width: 240px;
+    height: 37vh;
+    background-color: #5ee470;
     color: white;
-    overflow-y: auto;
+    padding: 20px;
+    position: fixed;
+    border: 1px solid black;
+    border-radius: 10px;
+    transition: transform 0.3s ease;
 }
 
 .sidebar h2 {
@@ -28,25 +30,26 @@ body{
     width: 100%;
     padding: 10px;
     margin: 5px 0;
-    border: none;
-    background-color: #444;
+    border: 1px solid black;
+    background-color: #438d4d;
     color: white;
     cursor: pointer;
     border-radius: 10px;
 }
 
 .sidebar input[type="file"] {
-    width: 90%;
+    width: 100%;
     padding: 10px;
     margin: 10px 0;
-    border: 1px solid #ccc;
+    border: 1px solid #000000;
     border-radius: 4px;
+    font-size: 14px;
 }
 
 .navbar {
     width: 100%;
-    height: 60px;
-    background-color: #444;
+    height: 80px;
+    background-color: #5ee470;
     color: white;
     padding: 10px 20px;
     text-align: left;
@@ -58,8 +61,14 @@ body{
 }
 
 img{
-    width: 20%;
+    width: 15%;
     height: auto;
+    margin-left: -10px;
+}
+
+a{
+    font-size: 30px;
+    font-weight: bold;
 }
 
 .navb{
@@ -78,7 +87,8 @@ img{
 }
 
 .main-content{
-    margin-left: 20%;
+    margin-left: 30%;
+    margin-top: 10px;
 }
 
 .table-container {
@@ -87,7 +97,7 @@ img{
     justify-content: center;
     align-items: flex-start;
     gap: 20px;
-    width: 50%;
+    width: 100%;
 }
 
 .table-responsive {
@@ -105,12 +115,13 @@ img{
 }
 
 h2{
-    font-size: 15px;
+    font-size: 20px;
     font-weight: bold;
+    text-align: center;
 }
 
 P{
-    font-size: 10px;
+    font-size: 20px;
     font-weight: bold;
     margin-bottom: 0;
 }
@@ -121,7 +132,7 @@ P{
 }
 
 .form-control{
-    font-size: 10px;
+    font-size: 20px;
     font-weight: bold;
     border: none;
     border-bottom: 1px solid black;
@@ -130,10 +141,40 @@ P{
     
 }
 
-.main-content {
-    padding: 20px;
-    margin-top: 40px;
+label{
+    font-size: 20px;
+    font-weight: bold;
+}
 
+.main-content {
+    padding: 10px;
+    margin-top: 70px;
+    margin-left: 40px;
+    margin-right: -50px;
+}
+
+.hidden {
+    transform: translateX(-100%);
+}
+
+.toggle-btn {
+    position: fixed;
+    top: 70px;
+    left: 260px;
+    padding: 5px 12px;
+    background: #5ee470;
+    color: white;
+    border: 1px solid #000000;
+    cursor: pointer;
+    z-index: 1000;
+    border-radius: 10px;
+    font-size: 15px;
+}
+
+tbody, thead{
+    text-align: center;
+    font-weight: bold;
+    font-size: 15px;
 }
 
 @media print {
@@ -151,5 +192,33 @@ P{
         position: absolute;
         left: 0;
         top: 0;
+    }
+    P{
+        font-size: 10px;
+        font-weight: bold;
+        margin-bottom: 0;
+    }
+    label{
+        font-size: 10px;
+        font-weight: bold;
+    }
+    .form-control{
+        font-size: 10px;
+        font-weight: bold;
+        border: none;
+        border-bottom: 1px solid black;
+    }
+    .table-container{
+        display: flex;
+        margin: 0 auto; /* Centers horizontally */
+        justify-content: center;
+        align-items: flex-start;
+        gap: 40px;
+        width: 40%;
+    }
+    tbody, thead{
+        text-align: center;
+        font-weight: bold;
+        font-size: 8px;
     }
 }

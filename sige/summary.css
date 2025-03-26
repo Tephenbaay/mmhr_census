@@ -4,18 +4,30 @@ body, h1, h2, form, select, input, button {
 }
 
 body {
+    margin: 0;
+    padding: 0;
     display: flex;
     font-family: Arial, sans-serif;
     background-color: rgb(255, 255, 255);
 }
 
+a{
+    font-weight: bold;
+    font-size: 30px;
+}
+
 .sidebar {
-    width: 250px;
-    height: 100vh;
-    background-color: #333;
+    margin-top: 25mm;
+    margin-left: 3.8mm;
+    width: 200px;
+    height: 33vh;
+    background-color: #5ee470;
     color: white;
     padding: 20px;
     position: fixed;
+    border: 1px solid black;
+    border-radius: 10px;
+    transition: transform 0.3s ease;
 }
 
 .sidebar h2 {
@@ -31,25 +43,29 @@ body {
     width: 100%;
     padding: 10px;
     margin: 5px 0;
-    border: none;
-    background-color: #444;
+    border: 1px solid black;
+    background-color: #438d4d;
     color: white;
     cursor: pointer;
     border-radius: 10px;
+}
+
+.sidebar button:hover {
+    background-color: #1c4421;
 }
 
 .sidebar input[type="file"] {
     width: 90%;
     padding: 10px;
     margin: 10px 0;
-    border: 1px solid #ccc;
+    border: 1px solid #000000;
     border-radius: 4px;
 }
 
 .navbar {
     width: 100%;
     height: 60px;
-    background-color: #444;
+    background-color: #5ee470;
     color: white;
     padding: 10px 20px;
     text-align: left;
@@ -58,6 +74,20 @@ body {
     top: 0;
     left: 0;
     z-index: 1000;
+}
+
+.btn1, .btn-success {
+    background-color: #5ee470;
+}
+
+h2{
+    text-align: center;
+    font-size: 30px;
+}
+
+h3{
+    text-align: center;
+    font-size: 20px;
 }
 
 .navb{
@@ -70,6 +100,7 @@ img{
     width: 3%;
     height: auto;
 }
+
 
 .navbar h1 {
     font-size: 1.5rem;
@@ -116,7 +147,9 @@ form button {
     position: relative;
     display: block;
     margin-top: 1%;
-    margin-left: auto;
+    margin-left: 17.5%;
+    margin-right: auto;
+    transition: margin-left 0.3s ease;
 }
 
 .table-responsive1{
@@ -173,7 +206,36 @@ tfoot{
     justify-content: space-between;
     margin: auto;
     width: 50%;
-    
+}
+
+.hidden {
+    transform: translateX(-100%);
+}
+
+.toggle-btn {
+    position: fixed;
+    top: 70px;
+    left: 260px;
+    padding: 10px 15px;
+    background: #5ee470;
+    color: white;
+    border: 1px solid #000000;
+    cursor: pointer;
+    z-index: 1000;
+    border-radius: 10px;
+}
+
+#content {
+    max-width: 1700px; /* Adjust as needed */
+    transition: margin 0.5s ease; /* Smooth transition */
+    margin-left: 270px; /* Default margin when sidebar is visible */
+}
+.hidden {
+    transform: translateX(-100%);
+}
+
+a:hover{
+    color: #000000;
 }
 
 @media print {

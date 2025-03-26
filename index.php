@@ -13,6 +13,7 @@ if ($conn->connect_error) {
 $files = $conn->query("SELECT * FROM uploaded_files");
 
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -22,31 +23,36 @@ $files = $conn->query("SELECT * FROM uploaded_files");
     <title>MMHR Census</title>
 </head>
 <body>
-    <aside>
-        <div class="sidebar">
-            <h2>Upload Excel File</h2>
-            <form action="upload.php" method="POST" enctype="multipart/form-data">
-                <input type="file" name="excelFile" accept=".xlsx, .xls">
-                <button type="submit">Upload</button>
-            </form>
-        </div>
-    </aside>
 
     <nav class="navbar">
-        <h1>BMCI</h1>
+        <div class="navb">
+        <img src="sige/download-removebg-preview.png" alt="icon">
+        <h1>BicutanMed</h1>
+        </div>
     </nav>
 
-    <div class="content">
-    <h2>Select File & Sheet</h2>
-        <form action="display_summary.php" method="GET">
-            <label for="file">Select File:</label>
-            <select name="file_id" id="file">
-                <?php while ($file = $files->fetch_assoc()): ?>
-                    <option value="<?= $file['id'] ?>"><?= $file['file_name'] ?></option>
-                <?php endwhile; ?>
-            </select>
-            <button type="submit">Load Sheets</button>
-        </form>
-    </div>
+        <div class="main">
+            <div class="container">
+                    <h2>Upload Excel File</h2>
+                 <form action="upload.php" method="POST" enctype="multipart/form-data">
+                     <input type="file" name="excelFile" accept=".xlsx, .xls">
+                     <button type="submit" class="btn1">Upload</button>
+                 </form>
+            </div>
+
+            <div class="content">
+            <h2>Select File & Sheet</h2>
+                <form action="display_summary.php" method="GET">
+                    <label for="file">Select File:</label>
+                    <select name="file_id" id="file">
+                        <?php while ($file = $files->fetch_assoc()): ?>
+                            <option value="<?= $file['id'] ?>"><?= $file['file_name'] ?></option>
+                        <?php endwhile; ?>
+                    </select>
+                    <button type="submit">Load Sheets</button>
+                </form>
+            </div>
+        </div>
+        
 </body>
 </html>

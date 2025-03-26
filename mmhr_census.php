@@ -157,23 +157,27 @@ while ($row = $result->fetch_assoc()) {
 </head>
 <body class="container mt-4">
 
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+<nav class="navbar" style="background-color: #5ee470;">
     <div class="container-fluid">
-        <a class="navbar-brand" href="index.php">BMCI</a>
+        <div class="navb">
+            <img src="sige/download-removebg-preview.png" alt="icon">
+            <a class="navbar-brand" href="index.php">BicutanMed</a>
+        </div>
     </div>
 </nav>
 
 <aside>
-    <div class="sidebar">
+    <div class="sidebar" id="sidebar">
         <h2>Upload Excel File</h2>
-        <form action="upload.php" method="POST" enctype="multipart/form-data">
+        <form action="display_summary.php" method="POST" enctype="multipart/form-data">
             <input type="file" name="excelFile" accept=".xlsx, .xls">
             <button type="submit">Upload</button>
 
-            <button onclick="printTable()" class="btn btn-success">Print Table</button>
+            <button type="button" onclick="printTable()" class="btn btn-success">Print Table</button>
         </form>
     </div>
 </aside>
+<button class="toggle-btn" id="toggleBtn">Hide</button>
 
 <div class="main-content" id="main-content">
             <div class="header-text">
@@ -185,7 +189,7 @@ while ($row = $result->fetch_assoc()) {
                     <p>For the Month of JANUARY 2025</p>
                 </div>
                 <form>
-                <div class="row mb-3">
+                <div class="row mb-1">
                     <div class="col-md-6 d-flex align-items-center">
                         <label class="form-label me-2">Accreditation No.:</label>
                         <input type="text" class="form-control" name="accreditation_no">
@@ -196,7 +200,7 @@ while ($row = $result->fetch_assoc()) {
                     </div>
                 </div>
             
-                <div class="row mb-3">
+                <div class="row mb-1">
                     <div class="col-md-6 d-flex align-items-center">
                         <label class="form-label me-2">Name of Hospital:</label>
                         <input type="text" class="form-control" name="hospital_name">
@@ -207,7 +211,7 @@ while ($row = $result->fetch_assoc()) {
                     </div>
                 </div>
             
-                <div class="row mb-3">
+                <div class="row mb-1">
                     <div class="col-md-6 d-flex align-items-center">
                         <label class="form-label me-2">Address No./Street:</label>
                         <input type="text" class="form-control" name="address">
@@ -218,7 +222,7 @@ while ($row = $result->fetch_assoc()) {
                     </div>
                 </div>
             
-                <div class="row mb-3">
+                <div class="row mb-1">
                     <div class="col-md-4 d-flex align-items-center">
                         <label class="form-label me-2">Municipality:</label>
                         <input type="text" class="form-control" name="municipality">
@@ -233,7 +237,7 @@ while ($row = $result->fetch_assoc()) {
                     </div>
                 </div>
             
-                <div class="row mb-3">
+                <div class="row mb-1">
                     <div class="col-md-4 d-flex align-items-center">
                         <label class="form-label me-2">Zip Code:</label>
                         <input type="text" class="form-control" name="zip_code">
@@ -342,11 +346,100 @@ while ($row = $result->fetch_assoc()) {
         </div>
     </div>
 
-    <script>
-        function printContent() {
-            window.print();
+<script>
+
+function printTable() {
+    const printContents = document.getElementById("main-content").innerHTML; // Get the content of the main-content div
+    const originalContents = document.body.innerHTML;
+
+    // Add styles for printing
+    const printStyles = `
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                margin: 0;
+                padding: 0;
+            }
+            table {
+                width: 100%;
+                border-collapse: collapse;
+            }
+            th, td {
+                border: 1px solid black;
+                padding: 8px;
+                text-align: center;
+            }
+            .header-text {
+                text-align: center;
+                margin-bottom: 20px;
+            }
+        </style>
+    `;
+
+    // Set the document body to the print content with styles
+    document.body.innerHTML = `
+        ${printStyles}
+        <div class="header-text">
+            <h2>Mandatory Monthly Hospital Report</h2>
+        </div>
+        ${printContents}
+    `;
+
+    window.print(); // Trigger the print dialog
+    document.body.innerHTML = originalContents; // Restore the original content
+
+    // Reinitialize event listeners after restoring the content
+    reinitializeEventListeners();
+}
+
+        // Function to reinitialize event listeners
+function reinitializeEventListeners() {
+    const toggleBtn = document.getElementById("toggleBtn");
+    const sidebar = document.getElementById("sidebar");
+    const content = document.getElementById("content");
+    let isSidebarVisible = true;
+
+    toggleBtn.addEventListener("click", () => {
+        isSidebarVisible = !isSidebarVisible;
+        if (isSidebarVisible) {
+            sidebar.classList.remove("hidden");
+            toggleBtn.style.left = "260px";
+            content.style.marginLeft = "270px"; // Reset to original margin
+            content.style.marginRight = "0"; // Reset right margin
+            toggleBtn.textContent = "Hide";
+        } else {
+            sidebar.classList.add("hidden");
+            toggleBtn.style.left = "10px";
+            content.style.marginLeft = "auto"; // Center content
+            content.style.marginRight = "auto"; // Center content
+            toggleBtn.textContent = "Show";
         }
-    </script>
+    });
+}
+
+const sidebar = document.getElementById("sidebar");
+const toggleBtn = document.getElementById("toggleBtn");
+const content = document.getElementById("content"); // Ensure your main content has this ID
+let isSidebarVisible = true;
+
+toggleBtn.addEventListener("click", () => {
+    isSidebarVisible = !isSidebarVisible;
+    if (isSidebarVisible) {
+        sidebar.classList.remove("hidden");
+        toggleBtn.style.left = "260px";
+        content.style.marginLeft = "270px"; // Reset to original margin
+        content.style.marginRight = "0"; // Reset right margin
+        toggleBtn.textContent = "Hide";
+    } else {
+        sidebar.classList.add("hidden");
+        toggleBtn.style.left = "10px";
+        content.style.marginLeft = "auto"; // Center content
+        content.style.marginRight = "auto"; // Center content
+        toggleBtn.textContent = "Show";
+    }
+});
+
+</script>
 
 </body>
 </html>

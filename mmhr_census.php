@@ -112,14 +112,21 @@ while ($row = $result->fetch_assoc()) {
     $discharge_result = $conn->query($discharge_query);
 
     while ($row = $discharge_result->fetch_assoc()) {
-        $discharge_day = (int)date('d', strtotime($row['date_discharge'])) - 1; 
+        $discharge_day = (int)date('d', strtotime($row['date_discharge'])); 
         $category = strtolower($row['category']);
 
         if ($discharge_day >= 1 && $discharge_day <= 31) {
+            if (!isset($summary[$discharge_day])) {
+                $summary[$discharge_day] = [
+                    'total_discharges_non_nhip' => 0,
+                    'total_discharges_nhip' => 0
+                ];
+            }
+
             if (strpos($category, 'non phic') !== false) {
                 $summary[$discharge_day]['total_discharges_non_nhip'] += 1;
             } else {
-                $summary[$discharge_day]['total_discharges_nhip'] += 1; 
+                $summary[$discharge_day]['total_discharges_nhip'] += 1;
             }
         }
     }
@@ -157,7 +164,7 @@ while ($row = $result->fetch_assoc()) {
 </head>
 <body class="container mt-4">
 
-<nav class="navbar" style="background-color: #5ee470;">
+<nav class="navbar" style="background-color: #6ba172;">
     <div class="container-fluid">
         <div class="navb">
             <img src="sige/download-removebg-preview.png" alt="icon">
@@ -167,7 +174,7 @@ while ($row = $result->fetch_assoc()) {
 </nav>
 
 <aside>
-    <div class="sidebar" id="sidebar">
+    <div class="sidebar" id="sidebar" style="background-color: #6ba172;">
         <h2>Upload Excel File</h2>
         <form action="display_summary.php" method="POST" enctype="multipart/form-data">
             <input type="file" name="excelFile" accept=".xlsx, .xls">
@@ -177,7 +184,7 @@ while ($row = $result->fetch_assoc()) {
         </form>
     </div>
 </aside>
-<button class="toggle-btn" id="toggleBtn">Hide</button>
+<button class="toggle-btn" id="toggleBtn" style="background-color: #6ba172;">Hide</button>
 
 <div class="main-content" id="main-content">
             <div class="header-text">
@@ -244,7 +251,37 @@ while ($row = $result->fetch_assoc()) {
                     </div>
                 </div>
             </form>
-            
+            <form method="GET" class="mb-3">
+            <div class="sige">
+            <label class="col2-5"></label>
+            <select name="sheet_1" onchange="this.form.submit()" class="form-select mb-2">
+            <option value="" disabled selected>Select Month</option>
+                <?php foreach ($sheets as $sheet) { ?>
+                    <option value="<?php echo $sheet; ?>" <?php echo $sheet === $selected_sheet_1 ? 'selected' : ''; ?>>
+                        <?php echo $sheet; ?>
+                    </option>
+                <?php } ?>
+            </select>
+            <label class="col7"></label>
+            <select name="sheet_2" onchange="this.form.submit()" class="form-select mb-2">
+            <option value="" disabled selected>Select Admission Sheet</option>
+                <?php foreach ($sheets_2 as $sheet) { ?>
+                    <option value="<?php echo $sheet; ?>" <?php echo $sheet === $selected_sheet_2 ? 'selected' : ''; ?>>
+                        <?php echo $sheet; ?>
+                    </option>
+                <?php } ?>
+            </select>
+            <label class="col8"></label>
+            <select name="sheet_3" onchange="this.form.submit()" class="form-select mb-2">
+            <option value="" disabled selected>Select Discharge Sheet</option>
+                <?php foreach ($sheets_3 as $sheet) { ?>
+                    <option value="<?php echo $sheet; ?>" <?php echo $sheet === $selected_sheet_3 ? 'selected' : ''; ?>>
+                        <?php echo $sheet; ?>
+                    </option>
+                <?php } ?>
+            </select>
+            </div>
+        </form>
                 <h2 class="text-center">MMHR Census</h2>
                 <div class="table-container">
                     <div class="col-md-6">

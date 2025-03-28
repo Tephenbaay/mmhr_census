@@ -7,8 +7,7 @@ body, h1, h2, form, select, input, button {
 /* Overall layout styles */
 body {
     display: flex;
-    font-family: Arial, sans-serif;
-    background-color: rgb(255, 255, 255);
+    font-family: 'Times New Roman', Times, serif;
     align-items: center;
     flex-direction: column;
     align-content: flex-start;
@@ -22,16 +21,16 @@ img{
 }
 
 .container{
-    background-color: #5ee470;
     height: 25vh;
     display: flex;
     width: 450px;
     display: grid;
-    border: 1px solid black;
     margin-top: 30mm;
     align-items: center;
     justify-content: center;
     border-radius: 10px;
+    box-shadow: #000000 0px 0px 10px 0px;
+    background-color: rgba(98, 170, 84, 0.7); /* Black background with 50% opacity */
 }
 
 h2{
@@ -50,21 +49,6 @@ a:hover{
     border: 1px solid #ccc;
     border-radius: 4px;
     margin-left: -14px;
-}
-
-/* Navbar styling */
-.navbar {
-    width: 100%;
-    height: 60px;
-    background-color: #5ee470;
-    color: white;
-    padding: 10px 20px;
-    text-align: left;
-    position: fixed;
-    justify-content: space-between;
-    top: 0;
-    left: 0;
-    z-index: 1000;
 }
 
 .navb{
@@ -86,10 +70,11 @@ h2{
 .content {
     width: 100%;
     padding: 50px;
-    border: 1px solid #000000;
-    background-color: #5ee470;
-    margin-top: 50px; 
+    background-color: #98cf9f;
+    margin-top: 30px; 
     border-radius: 10px;
+    background-color: rgba(98, 170, 84, 0.7);
+    box-shadow: #000000 0px 0px 10px 0px;
 }
 
 /* Form styling */
@@ -116,4 +101,39 @@ form button {
     display: flex;
     justify-content: center;
     align-items: center;
+}
+
+.submit, .btn1 {
+    border-radius: 10px;
+    box-shadow: 0 0 10px 0 #161f11;
+    border: none;
+    font-family: 'Times New Roman', Times, serif;
+}
+
+.submit:hover, .btn1:hover {
+    background-color: #324926;
+    color: white;
+    transition: 0.5s ease;
+}   
+
+h1, h2{
+    z-index: 1000;
+}
+
+h2{
+    margin-bottom: -5%;
+}
+
+.navbar {
+    width: 100%;
+    height: 60px;
+    background-color: #6ba172;
+    color: white;
+    padding: 10px 20px;
+    text-align: left;
+    position: fixed;
+    justify-content: space-between;
+    top: 0;
+    left: 0;
+    z-index: 1000;
 }

@@ -30,9 +30,9 @@ while ($row = $sheets_result_3->fetch_assoc()) {
     $sheets_3[] = $row['sheet_name_3'];
 }
 
-$selected_sheet_1 = strtolower($_GET['sheet_1'] ?? ($sheets[0] ?? ''));
-$selected_sheet_2 = strtolower($_GET['sheet_2'] ?? ($sheets[0] ?? ''));
-$selected_sheet_3 = strtolower($_GET['sheet_3'] ?? ($sheets[0] ?? ''));
+$selected_sheet_1 = isset($_GET['sheet_1']) ? $_GET['sheet_1'] : '';
+$selected_sheet_2 = isset($_GET['sheet_2']) ? $_GET['sheet_2'] : '';
+$selected_sheet_3 = isset($_GET['sheet_3']) ? $_GET['sheet_3'] : '';
 
 $query = "SELECT admission_date, discharge_date, member_category FROM patient_records 
           WHERE LOWER(sheet_name) = LOWER('$selected_sheet_1')";
@@ -190,38 +190,38 @@ while ($row = $result->fetch_assoc()) {
         </form>
     
         <form method="GET" class="mb-3">
-        <div class="sige">
-            <label class="col2-5"></label>
-            <select name="sheet_1" class="form-select mb-2" onchange="this.form.submit()">
-                <option value="" disabled <?php echo empty($selected_sheet_1) ? 'selected' : ''; ?>>Select Sheet</option>
-                <?php foreach ($sheets as $sheet) { ?>
-                    <option value="<?php echo htmlspecialchars($sheet); ?>" <?php echo ($sheet == $selected_sheet_1) ? 'selected' : ''; ?>>
-                        <?php echo htmlspecialchars($sheet); ?>
-                    </option>
-                <?php } ?>
-            </select>
+    <div class="sige">
+        <label class="col2-5"></label>
+        <select name="sheet_1" class="form-select mb-2" onchange="this.form.submit()">
+            <option value="" disabled <?php echo empty($selected_sheet_1) ? 'selected' : ''; ?>>Select Sheet</option>
+            <?php foreach ($sheets as $sheet) { ?>
+                <option value="<?php echo htmlspecialchars($sheet); ?>" <?php echo ($sheet == $selected_sheet_1) ? 'selected' : ''; ?>>
+                    <?php echo htmlspecialchars($sheet); ?>
+                </option>
+            <?php } ?>
+        </select>
 
-            <label class="col7"></label>
-            <select name="sheet_2" class="form-select mb-2" onchange="this.form.submit()">
-                <option value="" disabled <?php echo empty($selected_sheet_2) ? 'selected' : ''; ?>>Select Admission Sheet</option>
-                <?php foreach ($sheets_2 as $sheet) { ?>
-                    <option value="<?php echo htmlspecialchars($sheet); ?>" <?php echo ($sheet == $selected_sheet_2) ? 'selected' : ''; ?>>
-                        <?php echo htmlspecialchars($sheet); ?>
-                    </option>
-                <?php } ?>
-            </select>
+        <label class="col7"></label>
+        <select name="sheet_2" class="form-select mb-2" onchange="this.form.submit()">
+            <option value="" disabled <?php echo empty($selected_sheet_2) ? 'selected' : ''; ?>>Select Admission Sheet</option>
+            <?php foreach ($sheets_2 as $sheet) { ?>
+                <option value="<?php echo htmlspecialchars($sheet); ?>" <?php echo ($sheet == $selected_sheet_2) ? 'selected' : ''; ?>>
+                    <?php echo htmlspecialchars($sheet); ?>
+                </option>
+            <?php } ?>
+        </select>
 
-            <label class="col8"></label>
-            <select name="sheet_3" class="form-select mb-2" onchange="this.form.submit()">
-                <option value="" disabled <?php echo empty($selected_sheet_3) ? 'selected' : ''; ?>>Select Discharge Sheet</option>
-                <?php foreach ($sheets_3 as $sheet) { ?>
-                    <option value="<?php echo htmlspecialchars($sheet); ?>" <?php echo ($sheet == $selected_sheet_3) ? 'selected' : ''; ?>>
-                        <?php echo htmlspecialchars($sheet); ?>
-                    </option>
-                <?php } ?>
-            </select>
-        </div>
-    </form>
+        <label class="col8"></label>
+        <select name="sheet_3" class="form-select mb-2" onchange="this.form.submit()">
+            <option value="" disabled <?php echo empty($selected_sheet_3) ? 'selected' : ''; ?>>Select Discharge Sheet</option>
+            <?php foreach ($sheets_3 as $sheet) { ?>
+                <option value="<?php echo htmlspecialchars($sheet); ?>" <?php echo ($sheet == $selected_sheet_3) ? 'selected' : ''; ?>>
+                    <?php echo htmlspecialchars($sheet); ?>
+                </option>
+            <?php } ?>
+        </select>
+    </div>
+</form>
                 
         <div class="table-responsive1" id="printable">
             <table class="table table-bordered">

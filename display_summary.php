@@ -30,15 +30,12 @@ while ($row = $sheets_result_3->fetch_assoc()) {
     $sheets_3[] = $row['sheet_name_3'];
 }
 
-$selected_sheet_1 = $_GET['sheet_1'] ?? ($sheets[0] ?? '');
-$selected_sheet_2 = $_GET['sheet_2'] ?? ($sheets[0] ?? '');
-$selected_sheet_3 = $_GET['sheet_3'] ?? ($sheets[0] ?? '');
+$selected_sheet_1 = strtolower($_GET['sheet_1'] ?? ($sheets[0] ?? ''));
+$selected_sheet_2 = strtolower($_GET['sheet_2'] ?? ($sheets[0] ?? ''));
+$selected_sheet_3 = strtolower($_GET['sheet_3'] ?? ($sheets[0] ?? ''));
 
 $query = "SELECT admission_date, discharge_date, member_category FROM patient_records 
-          WHERE sheet_name = '$selected_sheet_1'
-          AND MONTH(admission_date) != 2
-          AND MONTH(discharge_date) != 2
-          AND (MONTH(admission_date) = 1 OR MONTH(admission_date) = 12)";
+          WHERE LOWER(sheet_name) = LOWER('$selected_sheet_1')";
 
 $result = $conn->query($query);
 
@@ -122,8 +119,7 @@ while ($row = $result->fetch_assoc()) {
                     'total_discharges_nhip' => 0
                 ];
             }
-
-            if (strpos($category, 'non phic') !== false) {
+            if (strpos($category, 'n/a') !== false || strpos($category, 'non phic') !== false || strpos($category, '#n/a') !== false) {
                 $summary[$discharge_day]['total_discharges_non_nhip'] += 1;
             } else {
                 $summary[$discharge_day]['total_discharges_nhip'] += 1;
@@ -133,13 +129,12 @@ while ($row = $result->fetch_assoc()) {
 
     $non_nhip_query = "SELECT date_admitted, date_discharge, category FROM patient_records_3 WHERE sheet_name_3 = '$selected_sheet_3'";
     $non_nhip_result = $conn->query($non_nhip_query);
-
     while ($row = $non_nhip_result->fetch_assoc()) {
         $admit = new DateTime($row['date_admitted']);
         $discharge = new DateTime($row['date_discharge']);
         $category = strtolower($row['category']);
 
-        if (strpos($category, 'non phic') !== false) {
+        if (strpos($category, 'n/a') !== false || strpos($category, 'non phic') !== false || strpos($category, '#n/a') !== false) {
             $startDay = max(1, (int) $admit->format('d'));
             $endDay = min(31, (int) $discharge->format('d') - 1);
 

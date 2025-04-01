@@ -56,22 +56,25 @@ while ($row = $result->fetch_assoc()) {
 
     if ($startDay <= 31 && $endDay >= 1) {
         for ($day = $startDay; $day <= $endDay; $day++) {
-            if (strpos($category, 'formal-government') !== false || strpos($category, 'sponsored- local govt unit') !== false) {
+            if (strpos($category, 'formal-government') !== false || strpos($category, 'local govt unit') !== false) {
                 $summary[$day]['govt'] += 1;
             } elseif (strpos($category, 'formal-private') !== false) {
                 $summary[$day]['private'] += 1;
-            } elseif (strpos($category, 'self earning individual') !== false || strpos($category, 'indirect contributor') !== false
-              || strpos($category, 'informal economy- informal sector') !== false) {
+            } elseif (strpos($category, 'self earning') !== false) {
                 $summary[$day]['self_employed'] += 1;
-            } elseif (strpos($category, 'ofw') !== false) {
-                $summary[$day]['ofw'] += 1;
+            }elseif (strpos($category, 'indirect contributor') !== false) {
+              $summary[$day]['self_employed'] += 1;
+            }elseif (strpos($category, 'informal economy') !== false) {
+              $summary[$day]['self_employed'] += 1;
             } elseif (strpos($category, 'migrant worker') !== false) {
+                $summary[$day]['ofw'] += 1;
+            } elseif (strpos($category, 'direct contributor') !== false) {
                 $summary[$day]['owwa'] += 1;
             } elseif (strpos($category, 'senior citizen') !== false) {
                 $summary[$day]['sc'] += 1;
             } elseif (strpos($category, 'pwd') !== false) {
                 $summary[$day]['pwd'] += 1;
-            } elseif (strpos($category, 'indigent') !== false || strpos($category, 'sponsored- pos financially incapable') !== false
+            } elseif (strpos($category, 'indigent') !== false || strpos($category, 'financially incapable') !== false
               || strpos($category, '4ps/mcct') !== false) {
                 $summary[$day]['indigent'] += 1;
             } elseif (strpos($category, 'lifetime member') !== false) {
@@ -161,7 +164,7 @@ while ($row = $result->fetch_assoc()) {
     <div class="container-fluid">
         <div class="navb">
             <img src="sige/download-removebg-preview.png" alt="icon">
-            <a class="navbar-brand" href="index.php">BicutanMed</a>
+            <a class="navbar-brand" href="dashboard.php">BicutanMed</a>
         </div>
     </div>
 </nav>
@@ -190,38 +193,38 @@ while ($row = $result->fetch_assoc()) {
         </form>
     
         <form method="GET" class="mb-3">
-    <div class="sige">
-        <label class="col2-5"></label>
-        <select name="sheet_1" class="form-select mb-2" onchange="this.form.submit()">
-            <option value="" disabled <?php echo empty($selected_sheet_1) ? 'selected' : ''; ?>>Select Sheet</option>
-            <?php foreach ($sheets as $sheet) { ?>
-                <option value="<?php echo htmlspecialchars($sheet); ?>" <?php echo ($sheet == $selected_sheet_1) ? 'selected' : ''; ?>>
-                    <?php echo htmlspecialchars($sheet); ?>
-                </option>
-            <?php } ?>
-        </select>
+            <div class="sige">
+                <label class="col2-5"></label>
+                <select name="sheet_1" class="form-select mb-2" onchange="this.form.submit()">
+                    <option value="" disabled <?php echo empty($selected_sheet_1) ? 'selected' : ''; ?>>Select Sheet</option>
+                    <?php foreach ($sheets as $sheet) { ?>
+                        <option value="<?php echo htmlspecialchars($sheet); ?>" <?php echo ($sheet == $selected_sheet_1) ? 'selected' : ''; ?>>
+                            <?php echo htmlspecialchars($sheet); ?>
+                        </option>
+                    <?php } ?>
+                </select>
 
-        <label class="col7"></label>
-        <select name="sheet_2" class="form-select mb-2" onchange="this.form.submit()">
-            <option value="" disabled <?php echo empty($selected_sheet_2) ? 'selected' : ''; ?>>Select Admission Sheet</option>
-            <?php foreach ($sheets_2 as $sheet) { ?>
-                <option value="<?php echo htmlspecialchars($sheet); ?>" <?php echo ($sheet == $selected_sheet_2) ? 'selected' : ''; ?>>
-                    <?php echo htmlspecialchars($sheet); ?>
-                </option>
-            <?php } ?>
-        </select>
+                <label class="col7"></label>
+                <select name="sheet_2" class="form-select mb-2" onchange="this.form.submit()">
+                    <option value="" disabled <?php echo empty($selected_sheet_2) ? 'selected' : ''; ?>>Select Admission Sheet</option>
+                    <?php foreach ($sheets_2 as $sheet) { ?>
+                        <option value="<?php echo htmlspecialchars($sheet); ?>" <?php echo ($sheet == $selected_sheet_2) ? 'selected' : ''; ?>>
+                            <?php echo htmlspecialchars($sheet); ?>
+                        </option>
+                    <?php } ?>
+                </select>
 
-        <label class="col8"></label>
-        <select name="sheet_3" class="form-select mb-2" onchange="this.form.submit()">
-            <option value="" disabled <?php echo empty($selected_sheet_3) ? 'selected' : ''; ?>>Select Discharge Sheet</option>
-            <?php foreach ($sheets_3 as $sheet) { ?>
-                <option value="<?php echo htmlspecialchars($sheet); ?>" <?php echo ($sheet == $selected_sheet_3) ? 'selected' : ''; ?>>
-                    <?php echo htmlspecialchars($sheet); ?>
-                </option>
-            <?php } ?>
-        </select>
-    </div>
-</form>
+                <label class="col8"></label>
+                <select name="sheet_3" class="form-select mb-2" onchange="this.form.submit()">
+                    <option value="" disabled <?php echo empty($selected_sheet_3) ? 'selected' : ''; ?>>Select Discharge Sheet</option>
+                    <?php foreach ($sheets_3 as $sheet) { ?>
+                        <option value="<?php echo htmlspecialchars($sheet); ?>" <?php echo ($sheet == $selected_sheet_3) ? 'selected' : ''; ?>>
+                            <?php echo htmlspecialchars($sheet); ?>
+                        </option>
+                    <?php } ?>
+                </select>
+            </div>
+        </form>
                 
         <div class="table-responsive1" id="printable">
             <table class="table table-bordered">
@@ -381,7 +384,7 @@ toggleBtn.addEventListener("click", () => {
     }
 });
 
-    function updateSelection(param, value) {
+function updateSelection(param, value) {
         const url = new URL(window.location.href);
         url.searchParams.set(param, value);
         window.location.href = url.toString();

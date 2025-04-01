@@ -123,7 +123,17 @@ if (isset($_FILES['excelFile'])) {
         }
     }
 
-    echo "File uploaded and processed successfully!";
+    if (session_status() == PHP_SESSION_NONE) {
+        session_start();
+    }
+    $_SESSION['file_uploaded'] = true;    
+
+    if (!isset($_SESSION['file_uploaded']) || !empty($sheets)) {
+        echo "<script>alert('File uploaded and processed successfully!');</script>";
+    }
+
+    echo "<script>alert('File uploaded and processed successfully!'); window.location.href='dashboard.php';</script>";
+    exit();
 } else {
     echo "No file uploaded.";
 }

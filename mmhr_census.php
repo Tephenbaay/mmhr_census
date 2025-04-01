@@ -30,15 +30,12 @@ while ($row = $sheets_result_3->fetch_assoc()) {
     $sheets_3[] = $row['sheet_name_3'];
 }
 
-$selected_sheet_1 = $_GET['sheet_1'] ?? ($sheets[0] ?? '');
-$selected_sheet_2 = $_GET['sheet_2'] ?? ($sheets[0] ?? '');
-$selected_sheet_3 = $_GET['sheet_3'] ?? ($sheets[0] ?? '');
+$selected_sheet_1 = isset($_GET['sheet_1']) ? $_GET['sheet_1'] : '';
+$selected_sheet_2 = isset($_GET['sheet_2']) ? $_GET['sheet_2'] : '';
+$selected_sheet_3 = isset($_GET['sheet_3']) ? $_GET['sheet_3'] : '';
 
 $query = "SELECT admission_date, discharge_date, member_category FROM patient_records 
-          WHERE sheet_name = '$selected_sheet_1'
-          AND MONTH(admission_date) != 2
-          AND MONTH(discharge_date) != 2
-          AND (MONTH(admission_date) = 1 OR MONTH(admission_date) = 12)";
+          WHERE LOWER(sheet_name) = LOWER('$selected_sheet_1')";
 
 $result = $conn->query($query);
 
@@ -122,8 +119,7 @@ while ($row = $result->fetch_assoc()) {
                     'total_discharges_nhip' => 0
                 ];
             }
-
-            if (strpos($category, 'non phic') !== false) {
+            if (strpos($category, 'n/a') !== false || strpos($category, 'non phic') !== false || strpos($category, '#n/a') !== false) {
                 $summary[$discharge_day]['total_discharges_non_nhip'] += 1;
             } else {
                 $summary[$discharge_day]['total_discharges_nhip'] += 1;
@@ -133,13 +129,12 @@ while ($row = $result->fetch_assoc()) {
 
     $non_nhip_query = "SELECT date_admitted, date_discharge, category FROM patient_records_3 WHERE sheet_name_3 = '$selected_sheet_3'";
     $non_nhip_result = $conn->query($non_nhip_query);
-
     while ($row = $non_nhip_result->fetch_assoc()) {
         $admit = new DateTime($row['date_admitted']);
         $discharge = new DateTime($row['date_discharge']);
         $category = strtolower($row['category']);
 
-        if (strpos($category, 'non phic') !== false) {
+        if (strpos($category, 'n/a') !== false || strpos($category, 'non phic') !== false || strpos($category, '#n/a') !== false) {
             $startDay = max(1, (int) $admit->format('d'));
             $endDay = min(31, (int) $discharge->format('d') - 1);
 
@@ -168,7 +163,7 @@ while ($row = $result->fetch_assoc()) {
     <div class="container-fluid">
         <div class="navb">
             <img src="sige/download-removebg-preview.png" alt="icon">
-            <a class="navbar-brand" href="index.php">BicutanMed</a>
+            <a class="navbar-brand" href="dashboard.php">BicutanMed</a>
         </div>
     </div>
 </nav>
@@ -181,6 +176,10 @@ while ($row = $result->fetch_assoc()) {
             <button type="submit">Upload</button>
 
             <button type="button" onclick="printTable()" class="btn btn-success">Print Table</button>
+
+            <form action="display_summary.php" method="GET">
+            <button type="submit" class="btn btn-primary mt-3">View MMHR Table</button>
+        </form>
         </form>
     </div>
 </aside>
@@ -188,100 +187,40 @@ while ($row = $result->fetch_assoc()) {
 
 <div class="main-content" id="main-content">
             <div class="header-text">
-                <div class="container">
-                    <p>REPUBLIC OF THE PHILIPPINES</p>
-                    <p>PHILIPPINE HEALTH INSURANCE CORPORATION</p>
-                    <p>MANDATORY MONTHLY HOSPITAL REPORT</p>
-                    <p>12/F City State Centre, 709 Shaw Blvd., Brgy. Oranbo, Pasig City</p>
-                    <p>For the Month of JANUARY 2025</p>
-                </div>
-                <form>
-                <div class="row mb-1">
-                    <div class="col-md-6 d-flex align-items-center">
-                        <label class="form-label me-2">Accreditation No.:</label>
-                        <input type="text" class="form-control" name="accreditation_no">
-                    </div>
-                    <div class="col-md-6 d-flex align-items-center">
-                        <label class="form-label me-2">Region:</label>
-                        <input type="text" class="form-control" name="region">
-                    </div>
-                </div>
-            
-                <div class="row mb-1">
-                    <div class="col-md-6 d-flex align-items-center">
-                        <label class="form-label me-2">Name of Hospital:</label>
-                        <input type="text" class="form-control" name="hospital_name">
-                    </div>
-                    <div class="col-md-6 d-flex align-items-center">
-                        <label class="form-label me-2">Category:</label>
-                        <input type="text" class="form-control" name="category">
-                    </div>
-                </div>
-            
-                <div class="row mb-1">
-                    <div class="col-md-6 d-flex align-items-center">
-                        <label class="form-label me-2">Address No./Street:</label>
-                        <input type="text" class="form-control" name="address">
-                    </div>
-                    <div class="col-md-6 d-flex align-items-center">
-                        <label class="form-label me-2">PHIC Accredited Beds:</label>
-                        <input type="text" class="form-control" name="phic_beds">
-                    </div>
-                </div>
-            
-                <div class="row mb-1">
-                    <div class="col-md-4 d-flex align-items-center">
-                        <label class="form-label me-2">Municipality:</label>
-                        <input type="text" class="form-control" name="municipality">
-                    </div>
-                    <div class="col-md-4 d-flex align-items-center">
-                        <label class="form-label me-2">DOH Authorized Beds:</label>
-                        <input type="text" class="form-control" name="doh_beds">
-                    </div>
-                    <div class="col-md-4 d-flex align-items-center">
-                        <label class="form-label me-2">Province:</label>
-                        <input type="text" class="form-control" name="province">
-                    </div>
-                </div>
-            
-                <div class="row mb-1">
-                    <div class="col-md-4 d-flex align-items-center">
-                        <label class="form-label me-2">Zip Code:</label>
-                        <input type="text" class="form-control" name="zip_code">
-                    </div>
-                </div>
-            </form>
             <form method="GET" class="mb-3">
             <div class="sige">
-            <label class="col2-5"></label>
-            <select name="sheet_1" onchange="this.form.submit()" class="form-select mb-2">
-            <option value="" disabled selected>Select Month</option>
-                <?php foreach ($sheets as $sheet) { ?>
-                    <option value="<?php echo $sheet; ?>" <?php echo $sheet === $selected_sheet_1 ? 'selected' : ''; ?>>
-                        <?php echo $sheet; ?>
-                    </option>
-                <?php } ?>
-            </select>
-            <label class="col7"></label>
-            <select name="sheet_2" onchange="this.form.submit()" class="form-select mb-2">
-            <option value="" disabled selected>Select Admission Sheet</option>
-                <?php foreach ($sheets_2 as $sheet) { ?>
-                    <option value="<?php echo $sheet; ?>" <?php echo $sheet === $selected_sheet_2 ? 'selected' : ''; ?>>
-                        <?php echo $sheet; ?>
-                    </option>
-                <?php } ?>
-            </select>
-            <label class="col8"></label>
-            <select name="sheet_3" onchange="this.form.submit()" class="form-select mb-2">
-            <option value="" disabled selected>Select Discharge Sheet</option>
-                <?php foreach ($sheets_3 as $sheet) { ?>
-                    <option value="<?php echo $sheet; ?>" <?php echo $sheet === $selected_sheet_3 ? 'selected' : ''; ?>>
-                        <?php echo $sheet; ?>
-                    </option>
-                <?php } ?>
-            </select>
+                <label class="col2-5"></label>
+                <select name="sheet_1" class="form-select mb-2" onchange="this.form.submit()">
+                    <option value="" disabled <?php echo empty($selected_sheet_1) ? 'selected' : ''; ?>>Select Sheet</option>
+                    <?php foreach ($sheets as $sheet) { ?>
+                        <option value="<?php echo htmlspecialchars($sheet); ?>" <?php echo ($sheet == $selected_sheet_1) ? 'selected' : ''; ?>>
+                            <?php echo htmlspecialchars($sheet); ?>
+                        </option>
+                    <?php } ?>
+                </select>
+
+                <label class="col7"></label>
+                <select name="sheet_2" class="form-select mb-2" onchange="this.form.submit()">
+                    <option value="" disabled <?php echo empty($selected_sheet_2) ? 'selected' : ''; ?>>Select Admission Sheet</option>
+                    <?php foreach ($sheets_2 as $sheet) { ?>
+                        <option value="<?php echo htmlspecialchars($sheet); ?>" <?php echo ($sheet == $selected_sheet_2) ? 'selected' : ''; ?>>
+                            <?php echo htmlspecialchars($sheet); ?>
+                        </option>
+                    <?php } ?>
+                </select>
+
+                <label class="col8"></label>
+                <select name="sheet_3" class="form-select mb-2" onchange="this.form.submit()">
+                    <option value="" disabled <?php echo empty($selected_sheet_3) ? 'selected' : ''; ?>>Select Discharge Sheet</option>
+                    <?php foreach ($sheets_3 as $sheet) { ?>
+                        <option value="<?php echo htmlspecialchars($sheet); ?>" <?php echo ($sheet == $selected_sheet_3) ? 'selected' : ''; ?>>
+                            <?php echo htmlspecialchars($sheet); ?>
+                        </option>
+                    <?php } ?>
+                </select>
             </div>
         </form>
+
                 <h2 class="text-center">MMHR Census</h2>
                 <div class="table-container">
                     <div class="col-md-6">
@@ -386,10 +325,9 @@ while ($row = $result->fetch_assoc()) {
 <script>
 
 function printTable() {
-    const printContents = document.getElementById("main-content").innerHTML; // Get the content of the main-content div
+    const printContents = document.getElementById("main-content").innerHTML; 
     const originalContents = document.body.innerHTML;
 
-    // Add styles for printing
     const printStyles = `
         <style>
             body {
@@ -413,7 +351,6 @@ function printTable() {
         </style>
     `;
 
-    // Set the document body to the print content with styles
     document.body.innerHTML = `
         ${printStyles}
         <div class="header-text">
@@ -422,14 +359,12 @@ function printTable() {
         ${printContents}
     `;
 
-    window.print(); // Trigger the print dialog
-    document.body.innerHTML = originalContents; // Restore the original content
+    window.print(); 
+    document.body.innerHTML = originalContents; 
 
-    // Reinitialize event listeners after restoring the content
     reinitializeEventListeners();
 }
 
-        // Function to reinitialize event listeners
 function reinitializeEventListeners() {
     const toggleBtn = document.getElementById("toggleBtn");
     const sidebar = document.getElementById("sidebar");
@@ -441,14 +376,14 @@ function reinitializeEventListeners() {
         if (isSidebarVisible) {
             sidebar.classList.remove("hidden");
             toggleBtn.style.left = "260px";
-            content.style.marginLeft = "270px"; // Reset to original margin
-            content.style.marginRight = "0"; // Reset right margin
+            content.style.marginLeft = "270px"; 
+            content.style.marginRight = "0";
             toggleBtn.textContent = "Hide";
         } else {
             sidebar.classList.add("hidden");
             toggleBtn.style.left = "10px";
-            content.style.marginLeft = "auto"; // Center content
-            content.style.marginRight = "auto"; // Center content
+            content.style.marginLeft = "auto"; 
+            content.style.marginRight = "auto"; 
             toggleBtn.textContent = "Show";
         }
     });
@@ -456,7 +391,7 @@ function reinitializeEventListeners() {
 
 const sidebar = document.getElementById("sidebar");
 const toggleBtn = document.getElementById("toggleBtn");
-const content = document.getElementById("content"); // Ensure your main content has this ID
+const content = document.getElementById("content"); 
 let isSidebarVisible = true;
 
 toggleBtn.addEventListener("click", () => {
@@ -464,19 +399,18 @@ toggleBtn.addEventListener("click", () => {
     if (isSidebarVisible) {
         sidebar.classList.remove("hidden");
         toggleBtn.style.left = "260px";
-        content.style.marginLeft = "270px"; // Reset to original margin
-        content.style.marginRight = "0"; // Reset right margin
+        content.style.marginLeft = "270px"; 
+        content.style.marginRight = "0"; 
         toggleBtn.textContent = "Hide";
     } else {
         sidebar.classList.add("hidden");
         toggleBtn.style.left = "10px";
-        content.style.marginLeft = "auto"; // Center content
-        content.style.marginRight = "auto"; // Center content
+        content.style.marginLeft = "auto"; 
+        content.style.marginRight = "auto";
         toggleBtn.textContent = "Show";
     }
 });
 
 </script>
-
 </body>
 </html>

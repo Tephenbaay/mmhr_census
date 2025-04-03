@@ -169,67 +169,24 @@ $summary = array_fill(1, 31, [
             $summary[$admit_day]['total_admissions'] += 1;
         }
     }
-    # total discharges column
-    $discharge_query = "SELECT date_admitted, date_discharge, category FROM patient_records_3 WHERE sheet_name_3 = '$selected_sheet_3'";
+    $discharge_query = "SELECT date_discharge, category FROM patient_records_3 WHERE sheet_name_3 = '$selected_sheet_3'";
     $discharge_result = $conn->query($discharge_query);
 
     while ($row = $discharge_result->fetch_assoc()) {
-        $admit_date = new DateTime($row['date_admitted']);
-        $discharge_date = new DateTime($row['date_discharge']); 
+        $discharge_day = (int)date('d', strtotime($row['date_discharge'])); 
         $category = strtolower($row['category']);
 
-        $month_numbers = [
-            'jan-discharge (billing)' => 1, 'feb-discharge (billing)' => 2, 'march-discharge (billing)' => 3, 'april-discharge (billing)' => 4, 'may-discharge (billing)' => 5, 'june-discharge (billing)' => 6,
-            'july-discharge (billing)' => 7, 'august-discharge (billing)' => 8, 'september-discharge (billing)' => 9, 'october-discharge (billing)' => 10, 'november-discharge (billing)' => 11, 'december-discharge (billing)' => 12
-        ];
-
-        if (!isset($month_numbers[$monthName])) {
-            continue; 
-        }
-
-        $selected_month = $month_numbers[$monthName];
-        $selected_year = 2025; 
-
-        if ($discharge_date->format('n') == $selected_month && $discharge_date->format('d') == 1) {
-            continue; 
-        }
-
-        if ($admit_date == $discharge_date) {
-            continue; 
-        }
-
-        if ($admit_date->format('n') == $selected_month) {
-            $admit_day = (int)$admit_date->format('d');
-            if ($admit_day >= 1 && $admit_day <= 31) {
-                if (!isset($summary[$admit_day])) {
-                    $summary[$admit_day] = [
-                        'total_discharges_non_nhip' => 0,
-                        'total_discharges_nhip' => 0
-                    ];
-                }
-                if (stripos($category, 'n/a') !== false || stripos($category, 'non phic') !== false || stripos($category, '#n/a') !== false) {
-                    $summary[$admit_day]['total_discharges_non_nhip'] += 1; 
-                }
+        if ($discharge_day >= 1 && $discharge_day <= 31) {
+            if (!isset($summary[$discharge_day])) {
+                $summary[$discharge_day] = [
+                    'total_discharges_non_nhip' => 0,
+                    'total_discharges_nhip' => 0
+                ];
             }
-
-            $start_day = max(2, (int)$admit_date->format('d'));
-            $end_day = (int)$discharge_date->format('d'); 
-
-            if ($start_day <= $end_day) {
-                for ($day = $start_day; $day <= $end_day; $day++) {
-                    if (!isset($summary[$day])) {
-                        $summary[$day] = [
-                            'total_discharges_non_nhip' => 0,
-                            'total_discharges_nhip' => 0
-                        ];
-                    }
-
-                    if (stripos($category, 'n/a') !== false || stripos($category, 'non phic') !== false || stripos($category, '#n/a') !== false) {
-                        $summary[$day]['total_discharges_non_nhip'] += 1; 
-                    } else {
-                        $summary[$day]['total_discharges_nhip'] += 1;
-                    }
-                }
+            if (strpos($category, 'n/a') !== false || strpos($category, 'non phic') !== false || strpos($category, '#n/a') !== false) {
+                $summary[$discharge_day]['total_discharges_non_nhip'] += 1;
+            } else {
+                $summary[$discharge_day]['total_discharges_nhip'] += 1;
             }
         }
     }

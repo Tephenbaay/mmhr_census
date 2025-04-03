@@ -8,21 +8,21 @@ $conn = new mysqli($host, $user, $pass, $dbname);
 if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
-
+#query for handling the patient_records table
 $sheets_query = "SELECT DISTINCT sheet_name FROM patient_records";
 $sheets_result = $conn->query($sheets_query);
 $sheets = [];
 while ($row = $sheets_result->fetch_assoc()) {
     $sheets[] = $row['sheet_name'];
 }
-
+#query for handling the patient_records_2 table
 $sheets_query_2 = "SELECT DISTINCT sheet_name_2 FROM patient_records_2";
 $sheets_result_2 = $conn->query($sheets_query_2);
 $sheets_2 = [];
 while ($row = $sheets_result_2->fetch_assoc()) {
     $sheets_2[] = $row['sheet_name_2'];
 }
-
+#query for handling the patient_records_3 table
 $sheets_query_3 = "SELECT DISTINCT sheet_name_3 FROM patient_records_3";
 $sheets_result_3 = $conn->query($sheets_query_3);
 $sheets_3 = [];
@@ -35,7 +35,7 @@ $selected_sheet_2 = isset($_GET['sheet_2']) ? $_GET['sheet_2'] : '';
 $selected_sheet_3 = isset($_GET['sheet_3']) ? $_GET['sheet_3'] : '';
 
 $query = "SELECT admission_date, discharge_date, member_category FROM patient_records 
-          WHERE LOWER(sheet_name) = LOWER('$selected_sheet_1')";
+          WHERE (sheet_name) = ('$selected_sheet_1')";
 
 $result = $conn->query($query);
 
@@ -45,8 +45,7 @@ $summary = array_fill(1, 31, [
     'nhip' => 0, 'non_nhip' => 0, 'total_admissions' => 0, 'total_discharges_nhip' => 0,
     'total_discharges_non_nhip' => 0,'lohs_nhip' => 0, 'lohs_non_nhip' => 0
 ]);
-
-#column 1-5
+    #column 1-5
     while ($row = $result->fetch_assoc()) {
         $admit = new DateTime($row['admission_date']);
         $discharge = new DateTime($row['discharge_date']);
@@ -104,14 +103,14 @@ $summary = array_fill(1, 31, [
                 }
             }
         }
-    
+    #nhip column
     foreach ($summary as $day => $row) {
         $summary[$day]['nhip'] = 
             $row['govt'] + $row['private'] + $row['self_employed'] + 
             $row['ofw'] + $row['owwa'] + $row['sc'] + 
             $row['pwd'] + $row['indigent'] + $row['pensioners'];
     }    
-
+    #column 9 non-nhip
     foreach ($summary as $day => $row) {
         $summary[$day]['lohs_nhip'] = 
             $row['govt'] + $row['private'] + $row['self_employed'] + 
@@ -119,6 +118,47 @@ $summary = array_fill(1, 31, [
             $row['pwd'] + $row['indigent'] + $row['pensioners'];
     }  
 }
+    #non-nhip column
+    $non_nhip_query = "SELECT date_admitted, date_discharge, category, sheet_name_3 FROM patient_records_3 WHERE sheet_name_3 = '$selected_sheet_3'";
+    $non_nhip_result = $conn->query($non_nhip_query);
+
+    while ($row = $non_nhip_result->fetch_assoc()) {
+        $admit = new DateTime($row['date_admitted']);
+        $discharge = new DateTime($row['date_discharge']);
+        $category = strtolower($row['category']);
+
+        if ($admit->format('Y-m-d') === $discharge->format('Y-m-d')) {
+            continue;
+        }
+
+        if (stripos($category, 'n/a') !== false || stripos($category, 'non phic') !== false || stripos($category, '#n/a') !== false) {
+        
+            $monthName = $matches[1] ?? 'jan';  
+
+            $monthStart = new DateTime("first day of $monthName");
+            $monthEnd = new DateTime("last day of $monthName");
+
+            $startDay = max(1, (int) $admit->format('d'));
+
+            if ($admit < $monthStart) {
+                $startDay = 1;
+            }
+
+            $endDay = min((int) $monthEnd->format('d'), (int) $discharge->format('d') - 1);
+
+            if ($discharge->format('d') == $monthEnd->format('d')) {
+                $endDay = $discharge->format('d') - 1;
+            }
+
+            if ($startDay <= (int) $monthEnd->format('d') && $endDay >= 1) {
+
+                for ($day = $startDay; $day <= $endDay; $day++) {
+                    $summary[$day]['non_nhip'] += 1;
+                }
+            }
+        }
+    }
+    #total admission column
     $admission_query = "SELECT admission_date_2 FROM patient_records_2 WHERE sheet_name_2 = '$selected_sheet_2'";
     $admission_result = $conn->query($admission_query);
 
@@ -129,43 +169,66 @@ $summary = array_fill(1, 31, [
             $summary[$admit_day]['total_admissions'] += 1;
         }
     }
-
-    $discharge_query = "SELECT date_discharge, category FROM patient_records_3 WHERE sheet_name_3 = '$selected_sheet_3'";
+    # total discharges column
+    $discharge_query = "SELECT date_admitted, date_discharge, category FROM patient_records_3 WHERE sheet_name_3 = '$selected_sheet_3'";
     $discharge_result = $conn->query($discharge_query);
 
     while ($row = $discharge_result->fetch_assoc()) {
-        $discharge_day = (int)date('d', strtotime($row['date_discharge'])); 
+        $admit_date = new DateTime($row['date_admitted']);
+        $discharge_date = new DateTime($row['date_discharge']); 
         $category = strtolower($row['category']);
 
-        if ($discharge_day >= 1 && $discharge_day <= 31) {
-            if (!isset($summary[$discharge_day])) {
-                $summary[$discharge_day] = [
-                    'total_discharges_non_nhip' => 0,
-                    'total_discharges_nhip' => 0
-                ];
-            }
-            if (strpos($category, 'n/a') !== false || strpos($category, 'non phic') !== false || strpos($category, '#n/a') !== false) {
-                $summary[$discharge_day]['total_discharges_non_nhip'] += 1;
-            } else {
-                $summary[$discharge_day]['total_discharges_nhip'] += 1;
-            }
+        $month_numbers = [
+            'jan-discharge (billing)' => 1, 'feb-discharge (billing)' => 2, 'march-discharge (billing)' => 3, 'april-discharge (billing)' => 4, 'may-discharge (billing)' => 5, 'june-discharge (billing)' => 6,
+            'july-discharge (billing)' => 7, 'august-discharge (billing)' => 8, 'september-discharge (billing)' => 9, 'october-discharge (billing)' => 10, 'november-discharge (billing)' => 11, 'december-discharge (billing)' => 12
+        ];
+
+        if (!isset($month_numbers[$monthName])) {
+            continue; 
         }
-    }
 
-    $non_nhip_query = "SELECT date_admitted, date_discharge, category FROM patient_records_3 WHERE sheet_name_3 = '$selected_sheet_3'";
-    $non_nhip_result = $conn->query($non_nhip_query);
-    while ($row = $non_nhip_result->fetch_assoc()) {
-        $admit = new DateTime($row['date_admitted']);
-        $discharge = new DateTime($row['date_discharge']);
-        $category = strtolower($row['category']);
+        $selected_month = $month_numbers[$monthName];
+        $selected_year = 2025; 
 
-        if (strpos($category, 'n/a') !== false || strpos($category, 'non phic') !== false || strpos($category, '#n/a') !== false) {
-            $startDay = max(1, (int) $admit->format('d'));
-            $endDay = min(31, (int) $discharge->format('d') - 1);
+        if ($discharge_date->format('n') == $selected_month && $discharge_date->format('d') == 1) {
+            continue; 
+        }
 
-            if ($startDay <= 31 && $endDay >= 1) {
-                for ($day = $startDay; $day <= $endDay; $day++) {
-                    $summary[$day]['non_nhip'] += 1;
+        if ($admit_date == $discharge_date) {
+            continue; 
+        }
+
+        if ($admit_date->format('n') == $selected_month) {
+            $admit_day = (int)$admit_date->format('d');
+            if ($admit_day >= 1 && $admit_day <= 31) {
+                if (!isset($summary[$admit_day])) {
+                    $summary[$admit_day] = [
+                        'total_discharges_non_nhip' => 0,
+                        'total_discharges_nhip' => 0
+                    ];
+                }
+                if (stripos($category, 'n/a') !== false || stripos($category, 'non phic') !== false || stripos($category, '#n/a') !== false) {
+                    $summary[$admit_day]['total_discharges_non_nhip'] += 1; 
+                }
+            }
+
+            $start_day = max(2, (int)$admit_date->format('d'));
+            $end_day = (int)$discharge_date->format('d'); 
+
+            if ($start_day <= $end_day) {
+                for ($day = $start_day; $day <= $end_day; $day++) {
+                    if (!isset($summary[$day])) {
+                        $summary[$day] = [
+                            'total_discharges_non_nhip' => 0,
+                            'total_discharges_nhip' => 0
+                        ];
+                    }
+
+                    if (stripos($category, 'n/a') !== false || stripos($category, 'non phic') !== false || stripos($category, '#n/a') !== false) {
+                        $summary[$day]['total_discharges_non_nhip'] += 1; 
+                    } else {
+                        $summary[$day]['total_discharges_nhip'] += 1;
+                    }
                 }
             }
         }
@@ -184,235 +247,167 @@ $summary = array_fill(1, 31, [
     
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
     <div class="container-fluid">
-        <div class="navb">
-            <img src="sige/download-removebg-preview.png" alt="icon">
-            <a class="navbar-brand" href="dashboard.php">BicutanMed</a>
-        </div>
+        <a class="navbar-brand" href="#">BMCI</a>
     </div>
 </nav>
 
 <aside>
-    <div class="sidebar" id="sidebar">
-        <h3>Upload Excel File</h3>
+    <div class="sidebar">
+        <h2>Upload Excel File</h2>
         <form action="upload.php" method="POST" enctype="multipart/form-data">
             <input type="file" name="excelFile" accept=".xlsx, .xls">
-            <button type="submit" class="btn1">Upload</button>
+            <button type="submit">Upload</button>
+
             <button onclick="printTable()" class="btn btn-success">Print Table</button>
-        </form>
-        <form action="mmhr_census.php" method="GET">
-            <button type="submit" class="btn btn-primary mt-3">View MMHR Census</button>
         </form>
     </div>
 </aside>
-<button class="toggle-btn" id="toggleBtn">Hide</button>
 
-    <div class="table-responsive" id="content">
-        <h2 class="text-center mb-4">MMHR Census Summary Table</h2>
-        <form action="mmhr_census.php" method="GET">
-            <input type="hidden" name="sheet_1" value="<?php echo $selected_sheet_1; ?>">
-            <input type="hidden" name="sheet_2" value="<?php echo $selected_sheet_2; ?>">
-            <input type="hidden" name="sheet_3" value="<?php echo $selected_sheet_3; ?>">
-        </form>
-    
-        <form method="GET" class="mb-3">
-            <div class="sige">
-                <label class="col2-5"></label>
-                <select name="sheet_1" class="form-select mb-2" onchange="this.form.submit()">
-                    <option value="" disabled <?php echo empty($selected_sheet_1) ? 'selected' : ''; ?>>Select Sheet</option>
-                    <?php foreach ($sheets as $sheet) { ?>
-                        <option value="<?php echo htmlspecialchars($sheet); ?>" <?php echo ($sheet == $selected_sheet_1) ? 'selected' : ''; ?>>
-                            <?php echo htmlspecialchars($sheet); ?>
-                        </option>
-                    <?php } ?>
-                </select>
+<div class="table-responsive">
+    <h2 class="text-center mb-4">MMHR Census Summary Table</h2>
+    <form action="mmhr_census.php" method="GET">
+        <input type="hidden" name="sheet_1" value="<?php echo $selected_sheet_1; ?>">
+        <input type="hidden" name="sheet_2" value="<?php echo $selected_sheet_2; ?>">
+        <input type="hidden" name="sheet_3" value="<?php echo $selected_sheet_3; ?>">
+        <button type="submit" class="btn btn-primary mt-3">View MMHR Census</button>
+    </form>
 
-                <label class="col7"></label>
-                <select name="sheet_2" class="form-select mb-2" onchange="this.form.submit()">
-                    <option value="" disabled <?php echo empty($selected_sheet_2) ? 'selected' : ''; ?>>Select Admission Sheet</option>
-                    <?php foreach ($sheets_2 as $sheet) { ?>
-                        <option value="<?php echo htmlspecialchars($sheet); ?>" <?php echo ($sheet == $selected_sheet_2) ? 'selected' : ''; ?>>
-                            <?php echo htmlspecialchars($sheet); ?>
-                        </option>
-                    <?php } ?>
-                </select>
+    <form method="GET" class="mb-3">
+    <div class="sige">
+        <label class="col2-5"></label>
+        <select name="sheet_1" class="form-select mb-2" onchange="this.form.submit()">
+            <option value="" disabled <?php echo empty($selected_sheet_1) ? 'selected' : ''; ?>>Select Sheet</option>
+            <?php foreach ($sheets as $sheet) { ?>
+                <option value="<?php echo htmlspecialchars($sheet); ?>" <?php echo ($sheet == $selected_sheet_1) ? 'selected' : ''; ?>>
+                    <?php echo htmlspecialchars($sheet); ?>
+                </option>
+            <?php } ?>
+        </select>
 
-                <label class="col8"></label>
-                <select name="sheet_3" class="form-select mb-2" onchange="this.form.submit()">
-                    <option value="" disabled <?php echo empty($selected_sheet_3) ? 'selected' : ''; ?>>Select Discharge Sheet</option>
-                    <?php foreach ($sheets_3 as $sheet) { ?>
-                        <option value="<?php echo htmlspecialchars($sheet); ?>" <?php echo ($sheet == $selected_sheet_3) ? 'selected' : ''; ?>>
-                            <?php echo htmlspecialchars($sheet); ?>
-                        </option>
-                    <?php } ?>
-                </select>
-            </div>
-        </form>
-                
-        <div class="table-responsive1" id="printable">
-            <table class="table table-bordered">
-                <thead class="table-dark text-center">
-                <tr class="th1">
-                        <th colspan="1" style="background-color: black; color: white;">1</th>
-                        <th colspan="2" style="background-color: black; color: white;">2</th>
-                        <th colspan="5" style="background-color: black; color: white;">3</th>
-                        <th rowspan="1" style="background-color: black; color: white;">4</th>
-                        <th rowspan="1" style="background-color: black; color: white;">5</th>
-                        <th colspan="2" style="background-color: black; color: white;">6</th>
-                        <th rowspan="1" style="background-color: black; color: white;">7</th>
-                        <th colspan="2" style="background-color: black; color: white;">8</th>
-                        <th colspan="2" style="background-color: black; color: white;">9</th>
-                    </tr>
-                    <tr>
-                        <th rowspan="2" style="background-color: #c7f9ff;">Date</th>
-                        <th colspan="2" style="background-color: yellow;">Employed</th>
-                        <th colspan="5" style="background-color: yellow;">Individual Paying</th>
-                        <th rowspan="2" style="background-color: yellow;">Indigent</th>
-                        <th rowspan="2" style="background-color: yellow;">Pensioners</th>
-                        <th colspan="2" style="background-color: #c7f9ff;"> NHIP / NON-NHIP</th>
-                        <th rowspan="2" style="background-color: yellow;">Total Admissions</th>
-                        <th colspan="2" style="background-color: yellow;">Total Discharges</th>
-                        <th colspan="2" style="background-color: yellow;">Accumulated Patients LOHS</th>
-                    </tr>
-                    <tr>
-                        <th style="background-color: green;">Gov’t</th><th style="background-color: green;">Private</th>
-                        <th style="background-color: green;">Self-Employed</th><th style="background-color: green;">OFW</th>
-                        <th style="background-color: green;">OWWA</th><th style="background-color: green;">SC</th><th style="background-color: green;">PWD</th>
-                        <th style="background-color:rgb(0, 0, 0); color: white;" id="th1">NHIP</th><th style="background-color: #c7f9ff;">NON-NHIP</th>
-                        <th style="background-color: orange;">NHIP</th><th style="background-color: orange;">NON-NHIP</th>
-                        <th style="background-color: blue;">NHIP</th><th style="background-color: blue;">NON-NHIP</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php 
-                    
-                    $totals = [
-                        'govt' => 0, 'private' => 0, 'self_employed' => 0, 'ofw' => 0,
-                        'owwa' => 0, 'sc' => 0, 'pwd' => 0, 'indigent' => 0, 'pensioners' => 0,
-                        'nhip' => 0, 'non_nhip' => 0, 'total_admissions' => 0, 'total_discharges_nhip' => 0,
-                        'total_discharges_non_nhip' => 0, 'lohs_nhip' => 0
-                    ];
-                
-                    foreach ($summary as $day => $row) { 
-                    
-                        foreach ($totals as $key => &$total) {
-                            $total += $row[$key];
-                        }
-                    ?>
-                        <tr class="tdata">
-                            <td class="text-center"> <?php echo $day; ?> </td> 
-                            <td class="text-center"> <?php echo $row['govt']; ?> </td>
-                            <td class="text-center"> <?php echo $row['private']; ?> </td>
-                            <td class="text-center"> <?php echo $row['self_employed']; ?> </td>
-                            <td class="text-center"> <?php echo $row['ofw']; ?> </td>
-                            <td class="text-center"> <?php echo $row['owwa']; ?> </td>
-                            <td class="text-center"> <?php echo $row['sc']; ?> </td>
-                            <td class="text-center"> <?php echo $row['pwd']; ?> </td>
-                            <td class="text-center"> <?php echo $row['indigent']; ?> </td>
-                            <td class="text-center"> <?php echo $row['pensioners']; ?> </td>
-                            <td class="text-center" style="background-color: black; color: white;"> <?php echo $row['nhip']; ?> </td>
-                            <td class="text-center"> <?php echo $row['non_nhip']; ?> </td>
-                            <td class="text-center"> <?php echo $row['total_admissions']; ?> </td>
-                            <td class="text-center"> <?php echo $row['total_discharges_nhip']; ?> </td>
-                            <td class="text-center"> <?php echo $row['total_discharges_non_nhip']; ?> </td>
-                            <td class="text-center"> <?php echo $row['lohs_nhip']; ?> </td>
-                            <td class="text-center"> <?php echo $row['non_nhip']; ?> </td>
-                        </tr>
-                    <?php } ?>
-                    
-                    <tfoot class="footer">
-                    <tr class="table-dark text-center fw-bold">
-                        <td style="background-color:rgb(0, 0, 0); color: white;">Total</td>
-                        <td style="background-color:rgb(0, 0, 0); color: white;"><?php echo $totals['govt']; ?></td>
-                        <td style="background-color:rgb(0, 0, 0); color: white;"><?php echo $totals['private']; ?></td>
-                        <td style="background-color:rgb(0, 0, 0); color: white;"><?php echo $totals['self_employed']; ?></td>
-                        <td style="background-color:rgb(0, 0, 0); color: white;"><?php echo $totals['ofw']; ?></td>
-                        <td style="background-color:rgb(0, 0, 0); color: white;"><?php echo $totals['owwa']; ?></td>
-                        <td style="background-color:rgb(0, 0, 0); color: white;"><?php echo $totals['sc']; ?></td>
-                        <td style="background-color:rgb(0, 0, 0); color: white;"><?php echo $totals['pwd']; ?></td>
-                        <td style="background-color:rgb(0, 0, 0); color: white;"><?php echo $totals['indigent']; ?></td>
-                        <td style="background-color:rgb(0, 0, 0); color: white;"><?php echo $totals['pensioners']; ?></td>
-                        <td style="background-color:rgb(0, 0, 0); color: white;"><?php echo $totals['nhip']; ?></td>
-                        <td style="background-color:rgb(0, 0, 0); color: white;"><?php echo $totals['non_nhip']; ?></td>
-                        <td style="background-color:rgb(0, 0, 0); color: white;"><?php echo $totals['total_admissions']; ?></td>
-                        <td style="background-color:rgb(0, 0, 0); color: white;"><?php echo $totals['total_discharges_nhip']; ?></td>
-                        <td style="background-color:rgb(0, 0, 0); color: white;"><?php echo $totals['total_discharges_non_nhip']; ?></td>
-                        <td style="background-color:rgb(0, 0, 0); color: white;"><?php echo $totals['lohs_nhip']; ?></td>
-                        <td style="background-color:rgb(0, 0, 0); color: white;"><?php echo $totals['non_nhip']; ?></td>
-                    </tr>
-                    </tfoot>
-                </tbody>
-            </table>
-        </div>
+        <label class="col7"></label>
+        <select name="sheet_2" class="form-select mb-2" onchange="this.form.submit()">
+            <option value="" disabled <?php echo empty($selected_sheet_2) ? 'selected' : ''; ?>>Select Admission Sheet</option>
+            <?php foreach ($sheets_2 as $sheet) { ?>
+                <option value="<?php echo htmlspecialchars($sheet); ?>" <?php echo ($sheet == $selected_sheet_2) ? 'selected' : ''; ?>>
+                    <?php echo htmlspecialchars($sheet); ?>
+                </option>
+            <?php } ?>
+        </select>
+
+        <label class="col8"></label>
+        <select name="sheet_3" class="form-select mb-2" onchange="this.form.submit()">
+            <option value="" disabled <?php echo empty($selected_sheet_3) ? 'selected' : ''; ?>>Select Discharge Sheet</option>
+            <?php foreach ($sheets_3 as $sheet) { ?>
+                <option value="<?php echo htmlspecialchars($sheet); ?>" <?php echo ($sheet == $selected_sheet_3) ? 'selected' : ''; ?>>
+                    <?php echo htmlspecialchars($sheet); ?>
+                </option>
+            <?php } ?>
+        </select>
     </div>
+</form>
 
+    <div class="table-responsive1">
+        <table class="table table-bordered">
+            <thead class="table-dark text-center">
+            <tr>
+                    <th colspan="1" style="background-color: black; color: white;">1</th>
+                    <th colspan="2" style="background-color: black; color: white;">2</th>
+                    <th colspan="5" style="background-color: black; color: white;">3</th>
+                    <th rowspan="1" style="background-color: black; color: white;">4</th>
+                    <th rowspan="1" style="background-color: black; color: white;">5</th>
+                    <th colspan="2" style="background-color: black; color: white;">6</th>
+                    <th rowspan="1" style="background-color: black; color: white;">7</th>
+                    <th colspan="2" style="background-color: black; color: white;">8</th>
+                    <th colspan="2" style="background-color: black; color: white;">9</th>
+                </tr>
+                <tr>
+                    <th rowspan="2" style="background-color: #c7f9ff;">Date</th>
+                    <th colspan="2" style="background-color: yellow;">Employed</th>
+                    <th colspan="5" style="background-color: yellow;">Individual Paying</th>
+                    <th rowspan="2" style="background-color: yellow;">Indigent</th>
+                    <th rowspan="2" style="background-color: yellow;">Pensioners</th>
+                    <th colspan="2" style="background-color: #c7f9ff;"> NHIP / NON-NHIP</th>
+                    <th rowspan="2" style="background-color: yellow;">Total Admissions</th>
+                    <th colspan="2" style="background-color: yellow;">Total Discharges</th>
+                    <th colspan="2" style="background-color: yellow;">Accumulated Patients LOHS</th>
+                </tr>
+                <tr>
+                    <th style="background-color: green;">Gov’t</th><th style="background-color: green;">Private</th>
+                    <th style="background-color: green;">Self-Employed</th><th style="background-color: green;">OFW</th>
+                    <th style="background-color: green;">OWWA</th><th style="background-color: green;">SC</th><th style="background-color: green;">PWD</th>
+                    <th style="background-color:rgb(0, 0, 0); color: white;">NHIP</th><th style="background-color: #c7f9ff;">NON-NHIP</th>
+                    <th style="background-color: orange;">NHIP</th><th style="background-color: orange;">NON-NHIP</th>
+                    <th style="background-color: blue;">NHIP</th><th style="background-color: blue;">NON-NHIP</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php 
+                
+                $totals = [
+                    'govt' => 0, 'private' => 0, 'self_employed' => 0, 'ofw' => 0,
+                    'owwa' => 0, 'sc' => 0, 'pwd' => 0, 'indigent' => 0, 'pensioners' => 0,
+                    'nhip' => 0, 'non_nhip' => 0, 'total_admissions' => 0, 'total_discharges_nhip' => 0,
+                    'total_discharges_non_nhip' => 0, 'lohs_nhip' => 0
+                ];
+
+                foreach ($summary as $day => $row) { 
+                
+                    foreach ($totals as $key => &$total) {
+                        $total += $row[$key];
+                    }
+                ?>
+                    <tr>
+                        <td class="text-center"> <?php echo $day; ?> </td> 
+                        <td class="text-center"> <?php echo $row['govt']; ?> </td>
+                        <td class="text-center"> <?php echo $row['private']; ?> </td>
+                        <td class="text-center"> <?php echo $row['self_employed']; ?> </td>
+                        <td class="text-center"> <?php echo $row['ofw']; ?> </td>
+                        <td class="text-center"> <?php echo $row['owwa']; ?> </td>
+                        <td class="text-center"> <?php echo $row['sc']; ?> </td>
+                        <td class="text-center"> <?php echo $row['pwd']; ?> </td>
+                        <td class="text-center"> <?php echo $row['indigent']; ?> </td>
+                        <td class="text-center"> <?php echo $row['pensioners']; ?> </td>
+                        <td class="text-center" style="background-color: black; color: white;"> <?php echo $row['nhip']; ?> </td>
+                        <td class="text-center"> <?php echo $row['non_nhip']; ?> </td>
+                        <td class="text-center"> <?php echo $row['total_admissions']; ?> </td>
+                        <td class="text-center"> <?php echo $row['total_discharges_nhip']; ?> </td>
+                        <td class="text-center"> <?php echo $row['total_discharges_non_nhip']; ?> </td>
+                        <td class="text-center"> <?php echo $row['lohs_nhip']; ?> </td>
+                        <td class="text-center"> <?php echo $row['non_nhip']; ?> </td>
+                    </tr>
+                <?php } ?>
+
+                <tfoot class="footer">
+                <tr class="table-dark text-center fw-bold">
+                    <td style="background-color:rgb(0, 0, 0); color: white;">Total</td>
+                    <td style="background-color:rgb(0, 0, 0); color: white;"><?php echo $totals['govt']; ?></td>
+                    <td style="background-color:rgb(0, 0, 0); color: white;"><?php echo $totals['private']; ?></td>
+                    <td style="background-color:rgb(0, 0, 0); color: white;"><?php echo $totals['self_employed']; ?></td>
+                    <td style="background-color:rgb(0, 0, 0); color: white;"><?php echo $totals['ofw']; ?></td>
+                    <td style="background-color:rgb(0, 0, 0); color: white;"><?php echo $totals['owwa']; ?></td>
+                    <td style="background-color:rgb(0, 0, 0); color: white;"><?php echo $totals['sc']; ?></td>
+                    <td style="background-color:rgb(0, 0, 0); color: white;"><?php echo $totals['pwd']; ?></td>
+                    <td style="background-color:rgb(0, 0, 0); color: white;"><?php echo $totals['indigent']; ?></td>
+                    <td style="background-color:rgb(0, 0, 0); color: white;"><?php echo $totals['pensioners']; ?></td>
+                    <td style="background-color:rgb(0, 0, 0); color: white;"><?php echo $totals['nhip']; ?></td>
+                    <td style="background-color:rgb(0, 0, 0); color: white;"><?php echo $totals['non_nhip']; ?></td>
+                    <td style="background-color:rgb(0, 0, 0); color: white;"><?php echo $totals['total_admissions']; ?></td>
+                    <td style="background-color:rgb(0, 0, 0); color: white;"><?php echo $totals['total_discharges_nhip']; ?></td>
+                    <td style="background-color:rgb(0, 0, 0); color: white;"><?php echo $totals['total_discharges_non_nhip']; ?></td>
+                    <td style="background-color:rgb(0, 0, 0); color: white;"><?php echo $totals['lohs_nhip']; ?></td>
+                    <td style="background-color:rgb(0, 0, 0); color: white;"><?php echo $totals['non_nhip']; ?></td>
+                </tr>
+                </tfoot>
+            </tbody>
+        </table>
+    </div>
+</div>
 <script>
-
-function printTable() {
-    var printContents = document.getElementById("printable").innerHTML;
-    var originalContents = document.body.innerHTML;
-
-    document.body.innerHTML = printContents;
-    window.print();
-    document.body.innerHTML = originalContents;
-
-    // Reinitialize the event listeners after restoring the content
-    reinitializeEventListeners();
-}
-
-// Function to reinitialize event listeners
-function reinitializeEventListeners() {
-    const toggleBtn = document.getElementById("toggleBtn");
-    const sidebar = document.getElementById("sidebar");
-    const content = document.getElementById("content");
-    let isSidebarVisible = true;
-
-    toggleBtn.addEventListener("click", () => {
-        isSidebarVisible = !isSidebarVisible;
-        if (isSidebarVisible) {
-            sidebar.classList.remove("hidden");
-            toggleBtn.style.left = "260px";
-            content.style.marginLeft = "270px"; // Reset to original margin
-            content.style.marginRight = "0"; // Reset right margin
-            toggleBtn.textContent = "Hide";
-        } else {
-            sidebar.classList.add("hidden");
-            toggleBtn.style.left = "10px";
-            content.style.marginLeft = "auto"; // Center content
-            content.style.marginRight = "auto"; // Center content
-            toggleBtn.textContent = "Show";
-        }
-    });
-}
-
-const sidebar = document.getElementById("sidebar");
-const toggleBtn = document.getElementById("toggleBtn");
-const content = document.getElementById("content"); // Ensure your main content has this ID
-let isSidebarVisible = true;
-
-toggleBtn.addEventListener("click", () => {
-    isSidebarVisible = !isSidebarVisible;
-    if (isSidebarVisible) {
-        sidebar.classList.remove("hidden");
-        toggleBtn.style.left = "260px";
-        content.style.marginLeft = "270px"; // Reset to original margin
-        content.style.marginRight = "0"; // Reset right margin
-        toggleBtn.textContent = "Hide";
-    } else {
-        sidebar.classList.add("hidden");
-        toggleBtn.style.left = "10px";
-        content.style.marginLeft = "auto"; // Center content
-        content.style.marginRight = "auto"; // Center content
-        toggleBtn.textContent = "Show";
-    }
-});
-
-function updateSelection(param, value) {
+    function updateSelection(param, value) {
         const url = new URL(window.location.href);
         url.searchParams.set(param, value);
         window.location.href = url.toString();
     }
-
 </script>
-
 </body>
 </html>

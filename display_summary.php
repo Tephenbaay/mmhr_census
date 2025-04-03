@@ -45,46 +45,59 @@ $summary = array_fill(1, 31, [
     'nhip' => 0, 'non_nhip' => 0, 'total_admissions' => 0, 'total_discharges_nhip' => 0,
     'total_discharges_non_nhip' => 0,'lohs_nhip' => 0, 'lohs_non_nhip' => 0
 ]);
+
     #column 1-5
     while ($row = $result->fetch_assoc()) {
-        // Convert admission and discharge dates to DateTime and ensure time is midnight
         $admit = DateTime::createFromFormat('Y-m-d', trim($row['admission_date']))->setTime(0, 0, 0);
         $discharge = DateTime::createFromFormat('Y-m-d', trim($row['discharge_date']))->setTime(0, 0, 0);
         $category = trim(strtolower($row['member_category']));
-
-        // Extract selected month from sheet name
+    
         $selected_year = 2025;
         $month_numbers = [
             'JANUARY' => 1, 'FEBRUARY' => 2, 'MARCH' => 3, 'APRIL' => 4, 'MAY' => 5, 'JUNE' => 6,
             'JULY' => 7, 'AUGUST' => 8, 'SEPTEMBER' => 9, 'OCTOBER' => 10, 'NOVEMBER' => 11, 'DECEMBER' => 12
         ];
-
-        if($admit == $discharge){
+    
+        // Skip same-day admission and discharge
+        if ($admit == $discharge) {
             continue;
         }
-
+    
         $selected_month_name = strtoupper($selected_sheet_1);
-
+    
         if (!isset($month_numbers[$selected_month_name])) {
-            continue; // Skip if sheet name is invalid
+            continue; 
         }
-
+    
         $selected_month = $month_numbers[$selected_month_name];
-
+    
         $first_day_of_month = new DateTime("$selected_year-$selected_month-01 00:00:00");
         $last_day_of_month = new DateTime("$selected_year-$selected_month-" . cal_days_in_month(CAL_GREGORIAN, $selected_month, $selected_year));
-
-        // ❌ Skip patients discharged on the 1st if admitted before the month
+    
+        // Skip patients discharged on the 1st of the month
         if ($discharge->format('d') == 1 && $admit < $first_day_of_month) {
             continue;
         }
+    
+        // Determine the counting range
+        $startDay = ($admit < $first_day_of_month) ? 1 : (int)$admit->format('d');
+        $endDay = (int)$discharge->format('d') - 1;
 
-        // Set counting boundaries
-        $startDay = max(1, ($admit < $first_day_of_month) ? 1 : (int)$admit->format('d'));
-        $endDay = min(31, ($discharge > $last_day_of_month) ? 31 : (int)$discharge->format('d') - 1);
-
+        // Ensure valid range
+        if ($startDay > $endDay) {
+            continue; // Skip if invalid range
+        }
+    
         if ($startDay <= 31 && $endDay >= 1) {
             for ($day = $startDay; $day <= $endDay; $day++) {
+                if (!isset($summary[$day])) {
+                    $summary[$day] = [
+                        'govt' => 0, 'private' => 0, 'self_employed' => 0, 'ofw' => 0,
+                        'owwa' => 0, 'sc' => 0, 'pwd' => 0, 'indigent' => 0, 'pensioners' => 0
+                    ];
+                }
+    
+                // Categorizing patients
                 if (stripos($category, 'formal-government') !== false || stripos($category, 'sponsored- local govt unit') !== false) {
                     $summary[$day]['govt'] += 1;
                 } elseif (stripos($category, 'formal-private') !== false) {
@@ -98,7 +111,7 @@ $summary = array_fill(1, 31, [
                     $summary[$day]['owwa'] += 1;
                 } elseif (stripos($category, 'senior citizen') !== false) {
                     $summary[$day]['sc'] += 1;
-                } elseif (stripos($category, 'pwd') !== false || stripos($category, 'PWD') !== false) {
+                } elseif (stripos($category, 'pwd') !== false) {
                     $summary[$day]['pwd'] += 1;
                 } elseif (stripos($category, 'indigent') !== false || stripos($category, 'sponsored- pos financially incapable') !== false
                     || stripos($category, '4ps/mcct') !== false) {
@@ -108,6 +121,8 @@ $summary = array_fill(1, 31, [
                 }
             }
         }
+    }    
+
     #nhip column
     foreach ($summary as $day => $row) {
         $summary[$day]['nhip'] = 
@@ -115,6 +130,7 @@ $summary = array_fill(1, 31, [
             $row['ofw'] + $row['owwa'] + $row['sc'] + 
             $row['pwd'] + $row['indigent'] + $row['pensioners'];
     }    
+
     #column 9 non-nhip
     foreach ($summary as $day => $row) {
         $summary[$day]['lohs_nhip'] = 
@@ -122,8 +138,8 @@ $summary = array_fill(1, 31, [
             $row['ofw'] + $row['owwa'] + $row['sc'] + 
             $row['pwd'] + $row['indigent'] + $row['pensioners'];
     }  
-}
-  # non-nhip column
+
+    # non-nhip column
     $non_nhip_query = "SELECT date_admitted, date_discharge, category, sheet_name_3 FROM patient_records_3 WHERE sheet_name_3 = '$selected_sheet_3'";
     $non_nhip_result = $conn->query($non_nhip_query);
 
@@ -132,38 +148,30 @@ $summary = array_fill(1, 31, [
         $discharge = new DateTime($row['date_discharge']);
         $category = strtolower($row['category']);
 
-        // Only process patients with category "N/A" or its variations
         if (!(stripos($category, 'n/a') !== false || stripos($category, '#n/a') !== false)) {
             continue;
         }
 
-        // Skip if admission and discharge are on the same day
         if ($admit->format('Y-m-d') === $discharge->format('Y-m-d')) {
             continue;
         }
 
-        // Skip if the patient was discharged on the 1st day of the month
         if ((int) $discharge->format('d') === 1) {
             continue;
         }
 
-        # Convert the selected month number to a full month name
         $selected_month_name = date('F', mktime(0, 0, 0, $selected_month, 1, $selected_year));
 
-        # Define the first and last days of the selected month
         $monthStart = new DateTime("first day of $selected_month_name $selected_year");
         $monthEnd = new DateTime("last day of $selected_month_name $selected_year");
 
-        // Ensure counting starts within the current month
         $startDay = max(1, (int) $admit->format('d'));
         if ($admit < $monthStart) {
             $startDay = 1;
         }
 
-        // Ensure counting stops at discharge date - 1
         $endDay = min((int) $discharge->format('d') - 1, (int) $monthEnd->format('d'));
 
-        // Count only within the valid range
         if ($startDay <= $endDay) {
             for ($day = $startDay; $day <= $endDay; $day++) {
                 $summary[$day]['non_nhip'] += 1;

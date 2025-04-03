@@ -1,4 +1,10 @@
 <?php
+session_start();
+if (!isset($_SESSION["user_id"])) {
+    header("Location: index.php"); // Redirect to login if not authenticated
+    exit;
+}
+
 $host = "localhost";
 $user = "root";
 $pass = "";
@@ -27,7 +33,12 @@ $files = $conn->query("SELECT * FROM uploaded_files");
     <nav class="navbar">
         <div class="navb">
         <img src="sige/download-removebg-preview.png" alt="icon">
-        <h1>BicutanMed</h1>
+        <div class="nav-text">
+        <h1 style = "margin-bottom: -15px;">BicutanMed</h1>
+        <p>Caring For Life</p>
+        </div>
+        <a href="logout.php" class="btn btn-danger">↪</a>
+        </form>
         </div>
     </nav>
 

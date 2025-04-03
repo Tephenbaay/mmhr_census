@@ -46,42 +46,64 @@ $summary = array_fill(1, 31, [
     'total_discharges_non_nhip' => 0,'lohs_nhip' => 0, 'lohs_non_nhip' => 0
 ]);
 
-while ($row = $result->fetch_assoc()) {
-    $admit = new DateTime($row['admission_date']);
-    $discharge = new DateTime($row['discharge_date']);
-    $category = strtolower($row['member_category']);
+#column 1-5
+    while ($row = $result->fetch_assoc()) {
+        $admit = new DateTime($row['admission_date']);
+        $discharge = new DateTime($row['discharge_date']);
+        $category = trim(strtolower($row['member_category']));
 
-    $startDay = max(1, ($admit->format('m') == '12') ? 1 : (int) $admit->format('d'));
-    $endDay = min(31, (int) $discharge->format('d') - 1);
+        // Extract selected month from sheet name
+        $selected_year = 2025;
+        $month_numbers = [
+            'JANUARY' => 1, 'FEBRUARY' => 2, 'MARCH' => 3, 'APRIL' => 4, 'MAY' => 5, 'JUNE' => 6,
+            'JULY' => 7, 'AUGUST' => 8, 'SEPTEMBER' => 9, 'OCTOBER' => 10, 'NOVEMBER' => 11, 'DECEMBER' => 12
+        ];
 
-    if ($startDay <= 31 && $endDay >= 1) {
-        for ($day = $startDay; $day <= $endDay; $day++) {
-            if (strpos($category, 'formal-government') !== false || strpos($category, 'local govt unit') !== false) {
-                $summary[$day]['govt'] += 1;
-            } elseif (strpos($category, 'formal-private') !== false) {
-                $summary[$day]['private'] += 1;
-            } elseif (strpos($category, 'self earning') !== false) {
-                $summary[$day]['self_employed'] += 1;
-            }elseif (strpos($category, 'indirect contributor') !== false) {
-              $summary[$day]['self_employed'] += 1;
-            }elseif (strpos($category, 'informal economy') !== false) {
-              $summary[$day]['self_employed'] += 1;
-            } elseif (strpos($category, 'migrant worker') !== false) {
-                $summary[$day]['ofw'] += 1;
-            } elseif (strpos($category, 'direct contributor') !== false) {
-                $summary[$day]['owwa'] += 1;
-            } elseif (strpos($category, 'senior citizen') !== false) {
-                $summary[$day]['sc'] += 1;
-            } elseif (strpos($category, 'pwd') !== false) {
-                $summary[$day]['pwd'] += 1;
-            } elseif (strpos($category, 'indigent') !== false || strpos($category, 'financially incapable') !== false
-              || strpos($category, '4ps/mcct') !== false) {
-                $summary[$day]['indigent'] += 1;
-            } elseif (strpos($category, 'lifetime member') !== false) {
-                $summary[$day]['pensioners'] += 1;
+        $selected_month_name = strtoupper($selected_sheet_1);
+
+        if (!isset($month_numbers[$selected_month_name])) {
+            continue; // Skip if sheet name is invalid
+        }
+
+        $selected_month = $month_numbers[$selected_month_name];
+
+        $first_day_of_month = new DateTime("$selected_year-$selected_month-01");
+        $last_day_of_month = new DateTime("$selected_year-$selected_month-" . cal_days_in_month(CAL_GREGORIAN, $selected_month, $selected_year));
+
+        // ❌ Skip patients discharged on the 1st if admitted before the month
+        if ($discharge->format('d') == 1 && $admit < $first_day_of_month) {
+            continue;
+        }
+
+        // Set counting boundaries
+        $startDay = max(1, ($admit < $first_day_of_month) ? 1 : (int)$admit->format('d'));
+        $endDay = min(31, ($discharge > $last_day_of_month) ? 31 : (int)$discharge->format('d') - 1);
+
+        if ($startDay <= 31 && $endDay >= 1) {
+            for ($day = $startDay; $day <= $endDay; $day++) {
+                if (stripos($category, 'formal-government') !== false || stripos($category, 'sponsored- local govt unit') !== false) {
+                    $summary[$day]['govt'] += 1;
+                } elseif (stripos($category, 'formal-private') !== false) {
+                    $summary[$day]['private'] += 1;
+                } elseif (stripos($category, 'self earning individual') !== false || stripos($category, 'indirect contributor') !== false
+                    || stripos($category, 'informal economy- informal sector') !== false) {
+                    $summary[$day]['self_employed'] += 1;
+                } elseif (stripos($category, 'migrant worker') !== false) {
+                    $summary[$day]['ofw'] += 1;
+                } elseif (stripos($category, 'direct contributor') !== false) {
+                    $summary[$day]['owwa'] += 1;
+                } elseif (stripos($category, 'senior citizen') !== false) {
+                    $summary[$day]['sc'] += 1;
+                } elseif (stripos($category, 'pwd') !== false || stripos($category, 'PWD') !== false) {
+                    $summary[$day]['pwd'] += 1;
+                } elseif (stripos($category, 'indigent') !== false || stripos($category, 'sponsored- pos financially incapable') !== false
+                    || stripos($category, '4ps/mcct') !== false) {
+                    $summary[$day]['indigent'] += 1;
+                } elseif (stripos($category, 'lifetime member') !== false) {
+                    $summary[$day]['pensioners'] += 1;
+                }
             }
         }
-    }
     
     foreach ($summary as $day => $row) {
         $summary[$day]['nhip'] = 

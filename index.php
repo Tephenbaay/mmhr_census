@@ -1,4 +1,5 @@
 <?php
+session_start(); // Start session
 include 'config.php';
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
@@ -15,7 +16,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $stmt->fetch();
 
         if (password_verify($password, $hashed_password)) {
-            $_SESSION["user_id"] = $id;
+            $_SESSION["user_id"] = $id; // Store user session
             $_SESSION["username"] = $username;
             header("Location: dashboard.php");
             exit;
@@ -76,4 +77,3 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
 </body>
 </html>
-

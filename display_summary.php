@@ -47,8 +47,8 @@ $summary = array_fill(1, 31, [
 ]);
     #column 1-5
     while ($row = $result->fetch_assoc()) {
-        $admit = new DateTime($row['admission_date']);
-        $discharge = new DateTime($row['discharge_date']);
+        $admit = DateTime::createFromFormat('Y-m-d', trim($row['admission_date']))->setTime(0, 0, 0);
+        $discharge = DateTime::createFromFormat('Y-m-d', trim($row['discharge_date']))->setTime(0, 0, 0);
         $category = trim(strtolower($row['member_category']));
 
         // Extract selected month from sheet name

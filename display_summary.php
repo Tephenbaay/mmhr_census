@@ -248,12 +248,16 @@ $summary = array_fill(1, 31, [
         <form action="mmhr_census.php" method="GET">
             <button type="submit" class="btn btn-primary mt-3">View MMHR Census</button>
         </form>
+        <form action="leading_causes.php" method="GET">
+            <button type="submit" class="btn btn-primary mt-3">View Leading Causes</button>
+        </form>
+
     </div>
 </aside>
 <button class="toggle-btn" id="toggleBtn">Hide</button>
 
     <div class="table-responsive" id="content">
-        <h2 class="text-center mb-4">MMHR Census Summary Table</h2>
+        <h2 class="text-center mb-4">MMHR Summary Table</h2>
         <form action="mmhr_census.php" method="GET">
             <input type="hidden" name="sheet_1" value="<?php echo $selected_sheet_1; ?>">
             <input type="hidden" name="sheet_2" value="<?php echo $selected_sheet_2; ?>">
@@ -318,9 +322,9 @@ $summary = array_fill(1, 31, [
                         <th colspan="2" style="background-color: yellow;">Accumulated Patients LOHS</th>
                     </tr>
                     <tr>
-                        <th style="background-color: green;">Gov’t</th><th style="background-color: green;">Private</th>
-                        <th style="background-color: green;">Self-Employed</th><th style="background-color: green;">OFW</th>
-                        <th style="background-color: green;">OWWA</th><th style="background-color: green;">SC</th><th style="background-color: green;">PWD</th>
+                        <th style="background-color: green; color: white;">Gov’t</th><th style="background-color: green; color: white;">Private</th>
+                        <th style="background-color: green; color: white;">Self-Employed</th><th style="background-color: green; color: white;">OFW</th>
+                        <th style="background-color: green; color: white;">OWWA</th><th style="background-color: green; color: white;">SC</th><th style="background-color: green; color: white;">PWD</th>
                         <th style="background-color:rgb(0, 0, 0); color: white;" id="th1">NHIP</th><th style="background-color: #c7f9ff;">NON-NHIP</th>
                         <th style="background-color: orange;">NHIP</th><th style="background-color: orange;">NON-NHIP</th>
                         <th style="background-color: blue;">NHIP</th><th style="background-color: blue;">NON-NHIP</th>
@@ -399,11 +403,9 @@ function printTable() {
     window.print();
     document.body.innerHTML = originalContents;
 
-    // Reinitialize the event listeners after restoring the content
     reinitializeEventListeners();
 }
 
-// Function to reinitialize event listeners
 function reinitializeEventListeners() {
     const toggleBtn = document.getElementById("toggleBtn");
     const sidebar = document.getElementById("sidebar");
@@ -415,14 +417,14 @@ function reinitializeEventListeners() {
         if (isSidebarVisible) {
             sidebar.classList.remove("hidden");
             toggleBtn.style.left = "260px";
-            content.style.marginLeft = "270px"; // Reset to original margin
-            content.style.marginRight = "0"; // Reset right margin
+            content.style.marginLeft = "270px";
+            content.style.marginRight = "0"; 
             toggleBtn.textContent = "Hide";
         } else {
             sidebar.classList.add("hidden");
             toggleBtn.style.left = "10px";
-            content.style.marginLeft = "auto"; // Center content
-            content.style.marginRight = "auto"; // Center content
+            content.style.marginLeft = "auto"; 
+            content.style.marginRight = "auto"; 
             toggleBtn.textContent = "Show";
         }
     });
@@ -430,7 +432,7 @@ function reinitializeEventListeners() {
 
 const sidebar = document.getElementById("sidebar");
 const toggleBtn = document.getElementById("toggleBtn");
-const content = document.getElementById("content"); // Ensure your main content has this ID
+const content = document.getElementById("content"); 
 let isSidebarVisible = true;
 
 toggleBtn.addEventListener("click", () => {
@@ -438,14 +440,14 @@ toggleBtn.addEventListener("click", () => {
     if (isSidebarVisible) {
         sidebar.classList.remove("hidden");
         toggleBtn.style.left = "260px";
-        content.style.marginLeft = "270px"; // Reset to original margin
-        content.style.marginRight = "0"; // Reset right margin
+        content.style.marginLeft = "270px"; 
+        content.style.marginRight = "0"; 
         toggleBtn.textContent = "Hide";
     } else {
         sidebar.classList.add("hidden");
         toggleBtn.style.left = "10px";
-        content.style.marginLeft = "auto"; // Center content
-        content.style.marginRight = "auto"; // Center content
+        content.style.marginLeft = "auto"; 
+        content.style.marginRight = "auto"; 
         toggleBtn.textContent = "Show";
     }
 });

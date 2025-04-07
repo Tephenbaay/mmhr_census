@@ -47,6 +47,7 @@ if (isset($_FILES['excelFile'])) {
         $highestRow = $sheet->getHighestRow(); 
         
         $batchData = [];
+        $leadingCausesData = [];
         $normalizedSheetName = strtoupper(trim($sheetName));
 
         if (preg_match('/^(JANUARY|FEBRUARY|MARCH|APRIL|MAY|JUNE|JULY|AUGUST|SEPTEMBER|OCTOBER|NOVEMBER|DECEMBER)$/', $normalizedSheetName)) {
@@ -55,6 +56,7 @@ if (isset($_FILES['excelFile'])) {
             $colAdmissionDate = "C"; 
             $colDischargeDate = "D";
             $colMemberCategory = "L";
+            $colICD10 = "P"; 
             $tableName = "patient_records";
         } elseif (stripos($sheetName, 'admission') !== false) {
             $startRow = 11;
@@ -95,7 +97,13 @@ if (isset($_FILES['excelFile'])) {
                 $batchData[] = "($fileId, '$sheetName', '$admissionDate', '$patientName', '$memberCategory')";
             } else {
                 $memberCategory = trim($sheet->getCell("{$colMemberCategory}$rowIndex")->getValue());
+                $icd10 = trim($sheet->getCell("{$colICD10}$rowIndex")->getValue());
+
                 $batchData[] = "($fileId, '$sheetName', '$admissionDate', '$dischargeDate', '$memberCategory', '$patientName')";
+
+                if (!empty($icd10)) {
+                    $leadingCausesData[] = "($fileId, '$patientName', '$icd10', '$sheetName')";
+                }
             }
 
             if (count($batchData) >= 500) {
@@ -109,6 +117,10 @@ if (isset($_FILES['excelFile'])) {
                 $conn->query($query);
                 $batchData = [];
             }
+
+            if(count($leadingCausesData) >= 500) {
+                $query = "INSERT INTO leading_causes (file_id, patient_name, icd_10, sheet_name) VALUES " . implode(',', $leadingCausesData);
+            }
         }
 
         if (!empty($batchData)) {
@@ -121,19 +133,15 @@ if (isset($_FILES['excelFile'])) {
             }
             $conn->query($query);
         }
+
+        if (!empty($leadingCausesData)) {
+            $query = "INSERT INTO leading_causes (file_id, patient_name, icd_10, sheet_name) VALUES " . implode(',', $leadingCausesData);
+            $conn->query($query);
+        }
+        
     }
 
-    if (session_status() == PHP_SESSION_NONE) {
-        session_start();
-    }
-    $_SESSION['file_uploaded'] = true;    
-
-    if (!isset($_SESSION['file_uploaded']) || !empty($sheets)) {
-        echo "<script>alert('File uploaded and processed successfully!');</script>";
-    }
-
-    echo "<script>alert('File uploaded and processed successfully!'); window.location.href='dashboard.php';</script>";
-    exit();
+    echo "File uploaded and processed successfully!";
 } else {
     echo "No file uploaded.";
 }

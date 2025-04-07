@@ -37,3 +37,13 @@ CREATE TABLE patient_records_2 (
     patient_name_2 VARCHAR(255),
     FOREIGN KEY (file_id) REFERENCES uploaded_files(id)
 );
+
+CREATE TABLE leading_causes (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    file_id INT,
+    patient_name VARCHAR(255),
+    icd_10 VARCHAR(255),
+    sheet_name VARCHAR(255),
+    FOREIGN KEY (file_id) REFERENCES uploaded_files(id)
+);
+

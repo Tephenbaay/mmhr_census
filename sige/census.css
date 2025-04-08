@@ -1,0 +1,43 @@
+*{
+    margin: 0;
+    padding: 0;
+}
+
+.container{
+    width: 80%;
+    margin: 0 auto;
+}
+
+.table-container {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 20px;
+}
+.table-responsive {
+    width: 100%;
+}
+.header-text {
+    text-align: center;
+    font-weight: bold;
+    margin-bottom: 20px;
+}
+.form-label {
+    font-weight: bold;
+}
+
+@page{
+    size: letter;
+}
+
+@media print{
+    .container{
+        border: none;
+        width: 100%;
+        margin-left: 10mm;
+        background-color: white ;
+    }
+    body{
+        background-color: white;
+    };
+}

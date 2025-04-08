@@ -1,0 +1,198 @@
+/* Reset some default browser styles */
+body, h1, h2, form, select, input, button {
+    margin: 0;
+    padding: 0;
+}
+
+/* Overall layout styles */
+body {
+    font-family: 'Times New Roman', Times, serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    min-height: 100vh;
+    overflow-x: hidden; 
+    overflow-y: auto; 
+}
+
+/* Navbar styles */
+.navbar {
+    width: 100%;
+    height: 70px;
+    background-color: #6ba172;
+    color: white;
+    padding: 10px 20px;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+}
+
+.navb {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    
+}
+
+.navb img {
+    width: 4%;
+    height: auto;
+}
+
+.nav-text{
+    text-align: left;
+    position: fixed;
+    margin-left: 75px;
+}
+
+.nav-text h1 {
+    margin-top: 10px;
+    font-size: 2.0rem;
+}
+
+.nav-text p {
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.8);
+    text-align: center;
+    margin-top: 15px;
+}
+
+.btn-danger {
+    color: #fff;
+    padding: 10px;
+    border-radius: 5px;
+    text-decoration: none;
+    font-size: 30px;
+    margin-right: 40px;
+    font-weight: bold;
+}
+
+.logout:hover{
+    background-color: #5f9e60;
+    color: white;
+    transition: 0.5s ease;
+}
+
+/* Main content styles */
+.main {
+    margin-top: 80px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    padding: 20px;
+}
+
+.container {
+    width: 450px;
+    background-color: rgba(98, 170, 84, 0.7); /* Light green background */
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: #000000 0px 0px 10px 0px;
+    text-align: center;
+}
+
+h2 {
+    margin-top: 20px;
+    margin-bottom: 20px;
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+
+.form-label {
+    font-weight: bold;
+}
+
+input[type="file"], select, button {
+    width: 90%;
+    padding: 10px;
+    margin: 10px 0;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+}
+
+button {
+    background-color: #98cf9f;
+    color: rgb(0, 0, 0);
+    font-weight: bold;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+button:hover {
+    background-color: #5f9e60;
+}
+
+/* Sidebar and file selection area */
+.content {
+    width: 40%;
+    padding: 20px;
+    background-color: rgba(98, 170, 84, 0.7);
+    box-shadow: #000000 0px 0px 10px 0px;
+    margin-top: 30px;
+    border-radius: 10px;
+}
+
+.content select, .content button {
+    margin-left: 40px;
+    padding: 10px;
+}
+
+/* Flexbox adjustment */
+.main {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.submit, .btn1 {
+    border-radius: 10px;
+    box-shadow: 0 0 10px 0 #161f11;
+    border: none;
+    font-family: 'Poppins', arial, sans-serif;
+    font-weight: bold;
+}
+
+.submit:hover, .btn1:hover {
+    background-color: #324926;
+    color: white;
+    transition: 0.5s ease;
+}
+
+.nav-links{
+    display: flex;
+    align-items: center;
+    margin-top: 5px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .container {
+        width: 90%;
+    }
+
+    .navbar {
+        flex-direction: column;
+        height: auto;
+        text-align: center;
+    }
+
+    .navb {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .nav-text {
+        margin-top: 10px;
+    }
+
+    .btn-danger {
+        margin-top: 10px;
+    }
+}
